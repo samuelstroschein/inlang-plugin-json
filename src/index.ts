@@ -76,10 +76,6 @@ function parseResource(
 ): ast.Resource {
   return {
     type: "Resource",
-    id: {
-      type: "Identifier",
-      name: "messages",
-    },
     languageTag: {
       type: "LanguageTag",
       language: language,

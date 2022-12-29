@@ -1,14 +1,21 @@
-# inlang plugin-template
+# inlang-plugin-json
 
-This is a template for creating a new plugin for [inlang](https://inlang.com).
+This plugin reads and writes resources that are stored as JSON. The following features are supported:
 
-Plugins allow the customization of inlang's behavior by, for example, defining how resources should be parsed and serialized. Read more about using plugins on the [documentation site](https://inlang.com/documentation/plugins). This template has been set up to provide out of the box:
+- [x] key-value pair (`"key": "value"`)
+- [x] nested key-value pairs (`{ "key": { "nested-key": "value" } }`)
 
-- [x] TypeScript
-- [x] Testing (the example)
-- [x] Bundling
+### Usage
 
-## Getting started
+See the [example](./example).
+
+### Limitations
+
+- If a user creates a message with a nested id i.e. `example.nested` and `example` is also a message, the plugin will break.
+
+## Contributing
+
+### Getting started
 
 Run the following commands in your terminal (node and npm must be installed):
 
@@ -17,7 +24,7 @@ Run the following commands in your terminal (node and npm must be installed):
 
 `npm run dev` will start the development environment which automatically compiles the [src/index.ts](./src/index.ts) files to JavaScript ([dist/index.js](dist/index.js)), runs tests defined in `*.test.ts` files and watches changes.
 
-## Publishing
+### Publishing
 
 Run `npm run build` to generate a build.
 

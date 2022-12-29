@@ -10,10 +10,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@inlang/core": "^0.3.0-prerelease.6",
     "flat": "^5.0.2"
   },
   "devDependencies": {
-    "@inlang/core": "^0.3.0-prerelease.6",
     "@types/flat": "^5.0.2",
     "concurrently": "^7.6.0",
     "esbuild": "^0.16.11",

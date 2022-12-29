@@ -19,7 +19,7 @@ export async function initializeConfig(env){
 ```
 ----
 
-Take a look at the [example](./example/) for the plugin config and usage.
+Take a look at the [example inlang.config.js](./example/inlang.config.js) for the plugin config and usage.
 
 ----
 

@@ -83,6 +83,23 @@ describe("plugin", async () => {
       expect(json["test-nested"].updated).toBe("Newly created message");
     });
   });
+
+  it("should be capable of doing a round trip where the input equals the output", async () => {
+    const env = await initializeTestEnvironment();
+    const config = (await initializeConfig(env)) as Config;
+    const original = {
+      en: JSON.parse((await env.$fs.readFile("./en.json", "utf-8")) as string),
+      de: JSON.parse((await env.$fs.readFile("./de.json", "utf-8")) as string),
+    };
+    const resources = await config.readResources({ config });
+    await config.writeResources({ config, resources });
+    const serialized = {
+      en: JSON.parse((await env.$fs.readFile("./en.json", "utf-8")) as string),
+      de: JSON.parse((await env.$fs.readFile("./de.json", "utf-8")) as string),
+    };
+    expect(serialized).toEqual(original);
+    console.log(serialized);
+  });
 });
 
 /**

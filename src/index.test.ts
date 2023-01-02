@@ -35,6 +35,14 @@ describe("plugin", async () => {
       );
     });
 
+    it("should not parse missing translations as empty string or similar", () => {
+      const germanResource = resources.find(
+        (resource) => resource.languageTag.language === "de"
+      );
+      const message = query(germanResource!).get({ id: "test" });
+      expect(message).toBeUndefined();
+    });
+
     it("should be possible to query a nested message with dot notation (id.nested)", () => {
       const message = query(referenceResource).get({ id: "test-nested.test" });
       expect(message).toBeDefined();
@@ -65,11 +73,6 @@ describe("plugin", async () => {
         ),
         updatedReferenceResource,
       ];
-      console.log(
-        updatedResources.map((resource) =>
-          resource.body.map((message) => message.id.name)
-        )
-      );
       await config.writeResources({ config, resources: updatedResources });
       const json = JSON.parse(
         (await env.$fs.readFile(

@@ -2,6 +2,10 @@
   "name": "inlang-plugin-x-select-a-name-x",
   "type": "module",
   "module": "dist/index.js",
+  "engines": {
+    "npm": ">=8.0.0",
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "concurrently \"npm run dev:watch\" \"npm run dev:test\"",
     "dev:test": "vitest",

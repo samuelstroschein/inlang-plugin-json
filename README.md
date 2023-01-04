@@ -10,11 +10,21 @@ This plugin reads and writes resources that are stored as JSON. The following fe
 ```js
 // filename: inlang.config.js
 
-export async function initializeConfig(env){
-  // importing the plugin
-  const plugin = await env.$import(
-    "https://cdn.jsdelivr.net/gh/samuelstroschein/inlang-plugin-json@{version}/dist/index.js"
-  ) 
+export async function initializeConfig(env) {
+  const plugin = await env.$import("https://cdn.jsdelivr.net/gh/samuelstroschein/inlang-plugin-json@1.0.0/dist/index.js");
+
+  const pluginConfig = {
+    pathPattern: "./{language}.json",
+  };
+
+  return {
+    referenceLanguage: "en",
+    languages: ["en", "de"],
+    readResources: (args) =>
+      plugin.readResources({ ...args, ...env, pluginConfig }),
+    writeResources: (args) =>
+      plugin.writeResources({ ...args, ...env, pluginConfig }),
+  };
 }
 ```
 ----

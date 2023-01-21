@@ -1,5 +1,5 @@
 // @ts-ignore
-import { initializeConfig } from "../example/inlang.config.js";
+import { defineConfig } from "../example/inlang.config.js";
 import { describe, it, expect } from "vitest";
 import nodeFs from "node:fs";
 import { fs as memfs } from "memfs";
@@ -11,19 +11,19 @@ import {
 import { query } from "@inlang/core/query";
 
 const env = await initializeTestEnvironment();
-const config = (await initializeConfig(env)) as Config;
+const config = (await defineConfig(env)) as Config;
 
 describe("plugin", async () => {
   const resources = await config.readResources({ config });
   const referenceResource = resources.find(
-    (resource) => resource.languageTag.language === config.referenceLanguage
+    (resource) => resource.languageTag.name === config.referenceLanguage
   )!;
 
   describe("readResources()", async () => {
     it("should return an array of resources that matches config.languages", () => {
       expect(resources.length).toBe(config.languages.length);
       for (const resource of resources) {
-        expect(config.languages.includes(resource.languageTag.language));
+        expect(config.languages.includes(resource.languageTag.name));
       }
     });
 
@@ -37,7 +37,7 @@ describe("plugin", async () => {
 
     it("should not parse missing translations as empty string or similar", () => {
       const germanResource = resources.find(
-        (resource) => resource.languageTag.language === "de"
+        (resource) => resource.languageTag.name === "de"
       );
       const message = query(germanResource!).get({ id: "test" });
       expect(message).toBeUndefined();
@@ -68,8 +68,7 @@ describe("plugin", async () => {
         .unwrap();
       const updatedResources = [
         ...resources.filter(
-          (resource) =>
-            resource.languageTag.language !== config.referenceLanguage
+          (resource) => resource.languageTag.name !== config.referenceLanguage
         ),
         updatedReferenceResource,
       ];
@@ -86,7 +85,7 @@ describe("plugin", async () => {
 
   it("should be capable of doing a round trip where the input equals the output", async () => {
     const env = await initializeTestEnvironment();
-    const config = (await initializeConfig(env)) as Config;
+    const config = (await defineConfig(env)) as Config;
     const original = {
       en: JSON.parse((await env.$fs.readFile("./en.json", "utf-8")) as string),
       de: JSON.parse((await env.$fs.readFile("./de.json", "utf-8")) as string),

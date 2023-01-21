@@ -1,5 +1,5 @@
 {
-  "name": "inlang-plugin-x-select-a-name-x",
+  "name": "inlang-plugin-json",
   "type": "module",
   "module": "dist/index.js",
   "engines": {
@@ -14,7 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@inlang/core": "^0.3.0-prerelease.6",
+    "@inlang/core": "^0.3.0",
     "flat": "^5.0.2"
   },
   "devDependencies": {

@@ -11,7 +11,9 @@ This plugin reads and writes resources that are stored as JSON. The following fe
 // filename: inlang.config.js
 
 export async function initializeConfig(env) {
-  const plugin = await env.$import("https://cdn.jsdelivr.net/gh/samuelstroschein/inlang-plugin-json@1.0.0/dist/index.js");
+  const plugin = await env.$import(
+    "https://cdn.jsdelivr.net/gh/samuelstroschein/inlang-plugin-json@1/dist/index.js"
+  );
 
   const pluginConfig = {
     pathPattern: "./{language}.json",
@@ -27,11 +29,12 @@ export async function initializeConfig(env) {
   };
 }
 ```
-----
+
+---
 
 Take a look at the [example inlang.config.js](./example/inlang.config.js) for the plugin config and usage.
 
-----
+---
 
 ### Limitations
 
@@ -52,6 +55,6 @@ Run the following commands in your terminal (node and npm must be installed):
 
 Run `npm run build` to generate a build.
 
-The [dist](./dist/) directory is used to distribute the plugin directly via CDN like [jsDelivr](https://www.jsdelivr.com/). Using a CDN works because the inlang config uses dynamic imports to import plugins. 
+The [dist](./dist/) directory is used to distribute the plugin directly via CDN like [jsDelivr](https://www.jsdelivr.com/). Using a CDN works because the inlang config uses dynamic imports to import plugins.
 
 Read the [jsDelivr documentation](https://www.jsdelivr.com/?docs=gh) on importing from GitHub.

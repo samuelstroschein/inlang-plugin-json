@@ -1,7 +1,7 @@
 /**
- * @type {import("@inlang/core/config").InitializeConfig}
+ * @type {import("@inlang/core/config").DefineConfig}
  */
-export async function initializeConfig(env) {
+export async function defineConfig(env) {
   // importing plugin from local file for testing purposes
   const plugin = await env.$import("../dist/index.js");
 

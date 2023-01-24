@@ -74,6 +74,7 @@ function parseResource(
   flatJson: Record<string, string>,
   language: string
 ): ast.Resource {
+  console.log(flatJson.id);
   return {
     type: "Resource",
     languageTag: {

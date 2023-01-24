@@ -6,7 +6,7 @@ export async function defineConfig(env) {
   const plugin = await env.$import("../dist/index.js");
 
   const pluginConfig = {
-    pathPattern: "./{language}.json",
+    pathPattern: ".example/{language}.json",
   };
 
   return {

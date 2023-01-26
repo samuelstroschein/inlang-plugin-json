@@ -13,6 +13,8 @@
     // to improve bundling, types should explicitly importes as types
     "importsNotUsedAsValues": "error",
     // esmoduleinterop is oftentimes required
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    // check javascript files like the inlang.config.js file for type errors
+    "checkJs": true
   }
 }

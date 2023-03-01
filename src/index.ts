@@ -31,6 +31,7 @@ export async function getLanguages(
     args.pluginConfig.pathPattern.split("{language}");
 
   // prepraid for diffrent folder structer e.g. example/language/translation.josn
+  // see plugin.po
   const pathAfterLanguageisDirectory = pathAfterLanguage.startsWith("/");
 
   const paths = await args.$fs.readdir(pathBeforeLanguage);

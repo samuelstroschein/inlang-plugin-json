@@ -35,7 +35,6 @@ export async function getLanguages(
   const pathAfterLanguageisDirectory = pathAfterLanguage.startsWith("/");
 
   const paths = await args.$fs.readdir(pathBeforeLanguage);
-  // const files = await args.$fs.readdir("./example");
   // files that end with .json
   const languages = [];
 

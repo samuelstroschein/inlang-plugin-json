@@ -30,18 +30,16 @@ export async function getLanguages(
   const [pathBeforeLanguage, pathAfterLanguage] =
     args.pluginConfig.pathPattern.split("{language}");
 
+  // prepraid for diffrent folder structer e.g. example/language/translation.josn
   const pathAfterLanguageisDirectory = pathAfterLanguage.startsWith("/");
-
-  // letzte index of /     //+1 so that '/' is not taken away from the Path
 
   const paths = await args.$fs.readdir(pathBeforeLanguage);
   // const files = await args.$fs.readdir("./example");
   // files that end with .json
-  // remove the .json extension to only get language name
   const languages = [];
-  console.log(pathBeforeLanguage, "pathBeforeLanguage");
-  console.log(pathAfterLanguageisDirectory, "pathAfterLanguageisDirectory");
+
   for (const language of paths) {
+    // remove the .json extension to only get language name
     if (typeof language === "string" && language.endsWith(".json")) {
       languages.push(language.replace(".json", ""));
     }

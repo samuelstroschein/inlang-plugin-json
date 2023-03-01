@@ -18,6 +18,39 @@ export type PluginConfig = {
 };
 
 /**
+ * Automatically derives the languages in this repository.
+ */
+export async function getLanguages(
+  args: EnvironmentFunctions & {
+    pluginConfig: PluginConfig;
+    referenceLanguage: string;
+  }
+) {
+  // replace the path
+  const [pathBeforeLanguage, pathAfterLanguage] =
+    args.pluginConfig.pathPattern.split("{language}");
+
+  const pathAfterLanguageisDirectory = pathAfterLanguage.startsWith("/");
+
+  // letzte index of /     //+1 so that '/' is not taken away from the Path
+
+  const paths = await args.$fs.readdir(pathBeforeLanguage);
+  // const files = await args.$fs.readdir("./example");
+  // files that end with .json
+  // remove the .json extension to only get language name
+  const languages = [];
+  console.log(pathBeforeLanguage, "pathBeforeLanguage");
+  console.log(pathAfterLanguageisDirectory, "pathAfterLanguageisDirectory");
+  for (const language of paths) {
+    if (typeof language === "string" && language.endsWith(".json")) {
+      languages.push(language.replace(".json", ""));
+    }
+  }
+
+  return languages;
+}
+
+/**
  * Reading resources.
  *
  * The function merges the args from Config['readResources'] with the pluginConfig

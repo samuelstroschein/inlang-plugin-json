@@ -97,7 +97,6 @@ describe("plugin", async () => {
       de: JSON.parse((await env.$fs.readFile("./de.json", "utf-8")) as string),
     };
     expect(serialized).toEqual(original);
-    console.log(serialized);
   });
 });
 

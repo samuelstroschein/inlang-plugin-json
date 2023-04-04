@@ -1,1 +1,249 @@
-var x=Object.create;var O=Object.defineProperty;var A=Object.getOwnPropertyDescriptor;var E=Object.getOwnPropertyNames;var K=Object.getPrototypeOf,S=Object.prototype.hasOwnProperty;var v=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports);var F=(e,t,o,c)=>{if(t&&typeof t=="object"||typeof t=="function")for(let s of E(t))!S.call(e,s)&&s!==o&&O(e,s,{get:()=>t[s],enumerable:!(c=A(t,s))||c.enumerable});return e};var L=(e,t,o)=>(o=e!=null?x(K(e)):{},F(t||!e||!e.__esModule?O(o,"default",{value:e,enumerable:!0}):o,e));var w=v(($,P)=>{P.exports=b;b.flatten=b;b.unflatten=C;function h(e){return e&&e.constructor&&typeof e.constructor.isBuffer=="function"&&e.constructor.isBuffer(e)}function R(e){return e}function b(e,t){t=t||{};let o=t.delimiter||".",c=t.maxDepth,s=t.transformKey||R,f={};function g(l,m,p){p=p||1,Object.keys(l).forEach(function(r){let n=l[r],i=t.safe&&Array.isArray(n),a=Object.prototype.toString.call(n),u=h(n),j=a==="[object Object]"||a==="[object Array]",y=m?m+o+s(r):s(r);if(!i&&!u&&j&&Object.keys(n).length&&(!t.maxDepth||p<c))return g(n,y,p+1);f[y]=n})}return g(e),f}function C(e,t){t=t||{};let o=t.delimiter||".",c=t.overwrite||!1,s=t.transformKey||R,f={};if(h(e)||Object.prototype.toString.call(e)!=="[object Object]")return e;function l(r){let n=Number(r);return isNaN(n)||r.indexOf(".")!==-1||t.object?r:n}function m(r,n,i){return Object.keys(i).reduce(function(a,u){return a[r+o+u]=i[u],a},n)}function p(r){let n=Object.prototype.toString.call(r),i=n==="[object Array]",a=n==="[object Object]";if(r){if(i)return!r.length;if(a)return!Object.keys(r).length}else return!0}return e=Object.keys(e).reduce(function(r,n){let i=Object.prototype.toString.call(e[n]);return!(i==="[object Object]"||i==="[object Array]")||p(e[n])?(r[n]=e[n],r):m(n,r,b(e[n],t))},{}),Object.keys(e).forEach(function(r){let n=r.split(o).map(s),i=l(n.shift()),a=l(n[0]),u=f;for(;a!==void 0;){if(i==="__proto__")return;let j=Object.prototype.toString.call(u[i]),y=j==="[object Object]"||j==="[object Array]";if(!c&&!y&&typeof u[i]<"u")return;(c&&!y||!c&&u[i]==null)&&(u[i]=typeof a=="number"&&!t.object?[]:{}),u=u[i],n.length>0&&(i=l(n.shift()),a=l(n[0]))}u[i]=C(e[r],t)}),f}});var d=L(w(),1);async function z(e){let[t,o]=e.pluginConfig.pathPattern.split("{language}"),c=o.startsWith("/"),s=await e.$fs.readdir(t),f=[];for(let g of s)typeof g=="string"&&g.endsWith(".json")&&f.push(g.replace(".json",""));return f}async function I(e){let t=[];for(let o of e.config.languages){let c=e.pluginConfig.pathPattern.replace("{language}",o),s=(0,d.default)(JSON.parse(await e.$fs.readFile(c,"utf-8")));t.push(T(s,o))}return t}async function J(e){for(let t of e.resources){let o=e.pluginConfig.pathPattern.replace("{language}",t.languageTag.name);await e.$fs.writeFile(o,N(t))}}function T(e,t){return console.log(e.id),{type:"Resource",languageTag:{type:"LanguageTag",name:t},body:Object.entries(e).map(([o,c])=>M(o,c))}}function M(e,t){return{type:"Message",id:{type:"Identifier",name:e},pattern:{type:"Pattern",elements:[{type:"Text",value:t}]}}}function N(e){let t=Object.fromEntries(e.body.map(B));return JSON.stringify(d.default.unflatten(t),null,2)}function B(e){return[e.id.name,e.pattern.elements[0].value]}export{z as getLanguages,I as readResources,J as writeResources};
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __commonJS = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+
+// node_modules/flat/index.js
+var require_flat = __commonJS({
+  "node_modules/flat/index.js"(exports, module) {
+    module.exports = flatten2;
+    flatten2.flatten = flatten2;
+    flatten2.unflatten = unflatten;
+    function isBuffer(obj) {
+      return obj && obj.constructor && typeof obj.constructor.isBuffer === "function" && obj.constructor.isBuffer(obj);
+    }
+    function keyIdentity(key) {
+      return key;
+    }
+    function flatten2(target, opts) {
+      opts = opts || {};
+      const delimiter = opts.delimiter || ".";
+      const maxDepth = opts.maxDepth;
+      const transformKey = opts.transformKey || keyIdentity;
+      const output = {};
+      function step(object, prev, currentDepth) {
+        currentDepth = currentDepth || 1;
+        Object.keys(object).forEach(function(key) {
+          const value = object[key];
+          const isarray = opts.safe && Array.isArray(value);
+          const type = Object.prototype.toString.call(value);
+          const isbuffer = isBuffer(value);
+          const isobject = type === "[object Object]" || type === "[object Array]";
+          const newKey = prev ? prev + delimiter + transformKey(key) : transformKey(key);
+          if (!isarray && !isbuffer && isobject && Object.keys(value).length && (!opts.maxDepth || currentDepth < maxDepth)) {
+            return step(value, newKey, currentDepth + 1);
+          }
+          output[newKey] = value;
+        });
+      }
+      step(target);
+      return output;
+    }
+    function unflatten(target, opts) {
+      opts = opts || {};
+      const delimiter = opts.delimiter || ".";
+      const overwrite = opts.overwrite || false;
+      const transformKey = opts.transformKey || keyIdentity;
+      const result = {};
+      const isbuffer = isBuffer(target);
+      if (isbuffer || Object.prototype.toString.call(target) !== "[object Object]") {
+        return target;
+      }
+      function getkey(key) {
+        const parsedKey = Number(key);
+        return isNaN(parsedKey) || key.indexOf(".") !== -1 || opts.object ? key : parsedKey;
+      }
+      function addKeys(keyPrefix, recipient, target2) {
+        return Object.keys(target2).reduce(function(result2, key) {
+          result2[keyPrefix + delimiter + key] = target2[key];
+          return result2;
+        }, recipient);
+      }
+      function isEmpty(val) {
+        const type = Object.prototype.toString.call(val);
+        const isArray = type === "[object Array]";
+        const isObject = type === "[object Object]";
+        if (!val) {
+          return true;
+        } else if (isArray) {
+          return !val.length;
+        } else if (isObject) {
+          return !Object.keys(val).length;
+        }
+      }
+      target = Object.keys(target).reduce(function(result2, key) {
+        const type = Object.prototype.toString.call(target[key]);
+        const isObject = type === "[object Object]" || type === "[object Array]";
+        if (!isObject || isEmpty(target[key])) {
+          result2[key] = target[key];
+          return result2;
+        } else {
+          return addKeys(
+            key,
+            result2,
+            flatten2(target[key], opts)
+          );
+        }
+      }, {});
+      Object.keys(target).forEach(function(key) {
+        const split = key.split(delimiter).map(transformKey);
+        let key1 = getkey(split.shift());
+        let key2 = getkey(split[0]);
+        let recipient = result;
+        while (key2 !== void 0) {
+          if (key1 === "__proto__") {
+            return;
+          }
+          const type = Object.prototype.toString.call(recipient[key1]);
+          const isobject = type === "[object Object]" || type === "[object Array]";
+          if (!overwrite && !isobject && typeof recipient[key1] !== "undefined") {
+            return;
+          }
+          if (overwrite && !isobject || !overwrite && recipient[key1] == null) {
+            recipient[key1] = typeof key2 === "number" && !opts.object ? [] : {};
+          }
+          recipient = recipient[key1];
+          if (split.length > 0) {
+            key1 = getkey(split.shift());
+            key2 = getkey(split[0]);
+          }
+        }
+        recipient[key1] = unflatten(target[key], opts);
+      });
+      return result;
+    }
+  }
+});
+
+// node_modules/just-safe-set/index.mjs
+var objectSafeSet = set;
+function set(obj, propsArg, value) {
+  var props, lastProp;
+  if (Array.isArray(propsArg)) {
+    props = propsArg.slice(0);
+  }
+  if (typeof propsArg == "string") {
+    props = propsArg.split(".");
+  }
+  if (typeof propsArg == "symbol") {
+    props = [propsArg];
+  }
+  if (!Array.isArray(props)) {
+    throw new Error("props arg must be an array, a string or a symbol");
+  }
+  lastProp = props.pop();
+  if (!lastProp) {
+    return false;
+  }
+  prototypeCheck(lastProp);
+  var thisProp;
+  while (thisProp = props.shift()) {
+    prototypeCheck(thisProp);
+    if (typeof obj[thisProp] == "undefined") {
+      obj[thisProp] = {};
+    }
+    obj = obj[thisProp];
+    if (!obj || typeof obj != "object") {
+      return false;
+    }
+  }
+  obj[lastProp] = value;
+  return true;
+}
+function prototypeCheck(prop) {
+  if (prop == "__proto__" || prop == "constructor" || prop == "prototype") {
+    throw new Error("setting of prototype values not supported");
+  }
+}
+
+// src/index.ts
+var import_flat = __toESM(require_flat(), 1);
+async function getLanguages(args) {
+  const [pathBeforeLanguage, pathAfterLanguage] = args.pluginConfig.pathPattern.split("{language}");
+  const pathAfterLanguageIsDirectory = pathAfterLanguage.startsWith("/");
+  const paths = await args.$fs.readdir(pathBeforeLanguage);
+  const languages = [];
+  for (const language of paths) {
+    if (typeof language === "string" && language.endsWith(".json")) {
+      languages.push(language.replace(".json", ""));
+    }
+  }
+  return languages;
+}
+async function readResources(args) {
+  const result = [];
+  for (const language of args.config.languages) {
+    const resourcePath = args.pluginConfig.pathPattern.replace(
+      "{language}",
+      language
+    );
+    const json = JSON.parse(await args.$fs.readFile(resourcePath, "utf-8"));
+    const flatJson = (0, import_flat.default)(json);
+    result.push(parseResource(flatJson, language));
+  }
+  return result;
+}
+async function writeResources(args) {
+  for (const resource of args.resources) {
+    const resourcePath = args.pluginConfig.pathPattern.replace(
+      "{language}",
+      resource.languageTag.name
+    );
+    await args.$fs.writeFile(resourcePath, serializeResource(resource));
+  }
+}
+function parseResource(flatJson, language) {
+  return {
+    type: "Resource",
+    languageTag: {
+      type: "LanguageTag",
+      name: language
+    },
+    body: Object.entries(flatJson).map(
+      ([id, value]) => parseMessage(id, value)
+    )
+  };
+}
+function parseMessage(id, value) {
+  return {
+    type: "Message",
+    id: {
+      type: "Identifier",
+      name: id
+    },
+    pattern: { type: "Pattern", elements: [{ type: "Text", value }] }
+  };
+}
+function serializeResource(resource) {
+  const obj = {};
+  resource.body.forEach((message) => {
+    const [key, value] = serializeMessage(message);
+    objectSafeSet(obj, key, value);
+  });
+  return JSON.stringify(obj, null, 2);
+}
+function serializeMessage(message) {
+  return [message.id.name, message.pattern.elements[0].value];
+}
+export {
+  getLanguages,
+  readResources,
+  writeResources
+};

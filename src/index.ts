@@ -1,5 +1,6 @@
 import type { Config, EnvironmentFunctions } from "@inlang/core/config";
 import type * as ast from "@inlang/core/ast";
+import safeSet from 'just-safe-set';
 import flatten from "flat";
 
 /**
@@ -30,9 +31,9 @@ export async function getLanguages(
   const [pathBeforeLanguage, pathAfterLanguage] =
     args.pluginConfig.pathPattern.split("{language}");
 
-  // prepraid for diffrent folder structer e.g. example/language/translation.josn
+  // prepared for different folder structure e.g. example/language/translation.json
   // see plugin.po
-  const pathAfterLanguageisDirectory = pathAfterLanguage.startsWith("/");
+  const pathAfterLanguageIsDirectory = pathAfterLanguage.startsWith("/");
 
   const paths = await args.$fs.readdir(pathBeforeLanguage);
   // files that end with .json
@@ -66,10 +67,9 @@ export async function readResources(
       "{language}",
       language
     );
+    const json = JSON.parse((await args.$fs.readFile(resourcePath, "utf-8")) as string)
     // reading the json, and flattening it to avoid nested keys.
-    const flatJson = flatten(
-      JSON.parse((await args.$fs.readFile(resourcePath, "utf-8")) as string)
-    ) as Record<string, string>;
+    const flatJson = flatten(json) as Record<string, string>;
     result.push(parseResource(flatJson, language));
   }
   return result;
@@ -137,7 +137,7 @@ function parseMessage(id: string, value: string): ast.Message {
 /**
  * Serializes a resource.
  *
- * The function unflattens, and therefore reverses the flattening
+ * The function un-flattens, and therefore reverses the flattening
  * in parseResource, of a given object. The result is a stringified JSON
  * that is beautified by adding (null, 2) to the arguments.
  *
@@ -145,9 +145,13 @@ function parseMessage(id: string, value: string): ast.Message {
  *  serializeResource(resource)
  */
 function serializeResource(resource: ast.Resource): string {
-  const flatObject = Object.fromEntries(resource.body.map(serializeMessage));
-  // stringyify the object with beautification.
-  return JSON.stringify(flatten.unflatten(flatObject), null, 2);
+  const obj = {}
+  resource.body.forEach(message => {
+    const [key, value] = serializeMessage(message)
+    safeSet(obj, key, value);
+  });
+  // stringify the object with beautification.
+  return JSON.stringify(obj, null, 2);
 }
 
 /**

@@ -1,5 +1,5 @@
 // @ts-ignore
-import { defineConfig } from "../example/inlang.config.js";
+import { defineConfig } from "../example01/inlang.config.js";
 import { describe, it, expect } from "vitest";
 import nodeFs from "node:fs";
 import { fs as memfs } from "memfs";
@@ -75,7 +75,7 @@ describe("plugin", async () => {
       await config.writeResources({ config, resources: updatedResources });
       const json = JSON.parse(
         (await env.$fs.readFile(
-          `/example/${config.referenceLanguage}.json`,
+          `/example01/${config.referenceLanguage}.json`,
           "utf-8"
         )) as string
       );
@@ -109,9 +109,9 @@ describe("plugin", async () => {
 async function initializeTestEnvironment(): Promise<EnvironmentFunctions> {
   const $fs = memfs.promises;
   // change the working directory to the inlang config directory to resolve relative paths
-  process.cwd = () => "/example";
+  process.cwd = () => "/example01";
   const $import = initialize$import({
-    workingDirectory: "/example",
+    workingDirectory: "/example01",
     fs: $fs,
     fetch,
   });
@@ -120,7 +120,7 @@ async function initializeTestEnvironment(): Promise<EnvironmentFunctions> {
     $import,
   };
   // only /dist and /example are needed and therefore copied
-  for (const path of ["/dist", "/example"]) {
+  for (const path of ["/dist", "/example01"]) {
     // create directory
     await $fs.mkdir(path, { recursive: true });
     for (const file of await nodeFs.promises.readdir("./" + path)) {

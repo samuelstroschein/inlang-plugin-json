@@ -80,12 +80,12 @@ export async function readResources(
       "{language}",
       language
     );
-    if((await args.$fs.stat(`${resourcePath.replace("/*.json", "")}`)).isFile()) {
+    try {
       const json = JSON.parse((await args.$fs.readFile(resourcePath, "utf-8")) as string)
       // reading the json, and flattening it to avoid nested keys.
       const flatJson = flatten(json) as Record<string, string>;
       result.push(parseResource(flatJson, language));
-    } else {
+    } catch {
       // is directory
       let allFlatJson: any = {}
       for (const languagefile of await args.$fs.readdir(`${resourcePath.replace("/*.json", "")}`)) {

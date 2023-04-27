@@ -91,7 +91,6 @@ describe("writeResources()", async () => {
       en: JSON.parse((await env.$fs.readFile("./en/test.json", "utf-8")) as string),
       de: JSON.parse((await env.$fs.readFile("./de/test.json", "utf-8")) as string),
     };
-    console.log(original)
     const resources = await config.readResources({ config });
     await config.writeResources({ config, resources });
     const serialized = {

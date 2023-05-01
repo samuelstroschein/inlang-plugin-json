@@ -14,7 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@inlang/core": "^0.7.6",
+    "@inlang/core": "^0.7.8",
     "flat": "^5.0.2",
     "just-safe-set": "^4.2.1"
   },

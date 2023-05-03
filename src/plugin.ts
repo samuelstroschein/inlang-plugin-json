@@ -138,26 +138,31 @@ function parseResource(
  *  parseMessage("test", "Hello world")
  */
 function parseMessage(id: string, value: string, regex?: string): ast.Message {
-
-  const splitArray = value.split(regex || '(?!.*)');
   const newElements = [];
-  for (let i = 0; i < splitArray.length; i++) {
-    if (new RegExp(regex || '(?!.*)').test(splitArray[i])) {
-      newElements.push({
-        type: "Placeholder",
-        body: {
-          type: "VariableReference",
-          name: splitArray[i].slice(1, -1)
-        }
-      });
-    } else {
-      newElements.push({
-        type: "Text",
-        value: splitArray[i]
-      });
+  if(regex){
+    const splitArray = value.split(regex);
+    for (let i = 0; i < splitArray.length; i++) {
+      if (new RegExp(regex).test(splitArray[i])) {
+        newElements.push({
+          type: "Placeholder",
+          body: {
+            type: "VariableReference",
+            name: splitArray[i].slice(1, -1)
+          }
+        });
+      } else {
+        newElements.push({
+          type: "Text",
+          value: splitArray[i]
+        });
+      }
     }
+  } else {
+    newElements.push({
+      type: "Text",
+      value: value
+    });
   }
-  
 
   return {
     type: "Message",

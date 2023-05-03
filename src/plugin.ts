@@ -31,6 +31,7 @@ type PluginSettings = {
    *  "./resources/{language}.json"
    */
   pathPattern: string;
+  variableReferencePattern?: string;
 };
 
 /**
@@ -80,7 +81,7 @@ export async function readResources(
     );
     // reading the json, and flattening it to avoid nested keys.
     const flatJson = flatten(json) as Record<string, string>;
-    result.push(parseResource(flatJson, language));
+    result.push(parseResource(flatJson, language, args.settings.variableReferencePattern));
   }
   return result;
 }
@@ -115,7 +116,8 @@ async function writeResources(
 function parseResource(
   /** flat JSON refers to the flatten function from https://www.npmjs.com/package/flat */
   flatJson: Record<string, string>,
-  language: string
+  language: string,
+  regex?: string
 ): ast.Resource {
   return {
     type: "Resource",
@@ -124,7 +126,7 @@ function parseResource(
       name: language,
     },
     body: Object.entries(flatJson).map(([id, value]) =>
-      parseMessage(id, value)
+      parseMessage(id, value, regex)
     ),
   };
 }
@@ -135,14 +137,12 @@ function parseResource(
  * @example
  *  parseMessage("test", "Hello world")
  */
-function parseMessage(id: string, value: string): ast.Message {
+function parseMessage(id: string, value: string, regex?: string): ast.Message {
 
-  const regex = /({[^}]+})/g;
-  const splitArray = value.split(regex);
-
+  const splitArray = value.split(regex || '(?!.*)');
   const newElements = [];
   for (let i = 0; i < splitArray.length; i++) {
-    if (regex.test(splitArray[i])) {
+    if (new RegExp(regex || '(?!.*)').test(splitArray[i])) {
       newElements.push({
         type: "Placeholder",
         body: {
@@ -157,6 +157,7 @@ function parseMessage(id: string, value: string): ast.Message {
       });
     }
   }
+  
 
   return {
     type: "Message",

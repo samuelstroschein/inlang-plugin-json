@@ -11,7 +11,7 @@ import { pluginBuildConfig } from "@inlang/core/plugin";
 const options = await pluginBuildConfig({
   entryPoints: ["./src/index.js"],
   outfile: "./dist/index.js",
-  minify: true,
+  minify: true
 });
 
 const ctx = await context(options);

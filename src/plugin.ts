@@ -11,14 +11,12 @@ export const plugin = createPlugin<PluginSettings>(({ settings, env }) => ({
     return {
       languages: await getLanguages({
         $fs: env.$fs,
-        settings,
+        settings
       }),
-      readResources: async (args) =>
-        readResources({ ...args, $fs: env.$fs, settings }),
-      writeResources: async (args) =>
-        writeResources({ ...args, $fs: env.$fs, settings }),
+      readResources: async (args) => readResources({ ...args, $fs: env.$fs, settings }),
+      writeResources: async (args) => writeResources({ ...args, $fs: env.$fs, settings })
     };
-  },
+  }
 }));
 
 type PluginSettings = {
@@ -36,13 +34,9 @@ type PluginSettings = {
 /**
  * Automatically derives the languages in this repository.
  */
-async function getLanguages(args: {
-  $fs: InlangEnvironment["$fs"];
-  settings: PluginSettings;
-}) {
+async function getLanguages(args: { $fs: InlangEnvironment["$fs"]; settings: PluginSettings }) {
   // replace the path
-  const [pathBeforeLanguage, pathAfterLanguage] =
-    args.settings.pathPattern.split("{language}");
+  const [pathBeforeLanguage, pathAfterLanguage] = args.settings.pathPattern.split("{language}");
   const paths = await args.$fs.readdir(pathBeforeLanguage);
   const languages = [];
 
@@ -71,10 +65,7 @@ export async function readResources(
 ): ReturnType<InlangConfig["readResources"]> {
   const result: ast.Resource[] = [];
   for (const language of args.config.languages) {
-    const resourcePath = args.settings.pathPattern.replace(
-      "{language}",
-      language
-    );
+    const resourcePath = args.settings.pathPattern.replace("{language}", language);
     const json = JSON.parse(
       (await args.$fs.readFile(resourcePath, { encoding: "utf-8" })) as string
     );
@@ -98,10 +89,7 @@ async function writeResources(
   }
 ): ReturnType<InlangConfig["writeResources"]> {
   for (const resource of args.resources) {
-    const resourcePath = args.settings.pathPattern.replace(
-      "{language}",
-      resource.languageTag.name
-    );
+    const resourcePath = args.settings.pathPattern.replace("{language}", resource.languageTag.name);
     await args.$fs.writeFile(resourcePath, serializeResource(resource));
   }
 }
@@ -121,11 +109,9 @@ function parseResource(
     type: "Resource",
     languageTag: {
       type: "LanguageTag",
-      name: language,
+      name: language
     },
-    body: Object.entries(flatJson).map(([id, value]) =>
-      parseMessage(id, value)
-    ),
+    body: Object.entries(flatJson).map(([id, value]) => parseMessage(id, value))
   };
 }
 
@@ -140,9 +126,9 @@ function parseMessage(id: string, value: string): ast.Message {
     type: "Message",
     id: {
       type: "Identifier",
-      name: id,
+      name: id
     },
-    pattern: { type: "Pattern", elements: [{ type: "Text", value: value }] },
+    pattern: { type: "Pattern", elements: [{ type: "Text", value: value }] }
   };
 }
 
@@ -163,7 +149,7 @@ function serializeResource(resource: ast.Resource): string {
     safeSet(obj, key, value);
   });
   // stringify the object with beautification.
-  return JSON.stringify(obj, null, 2);
+  return JSON.stringify(obj, null, 4);
 }
 
 /**

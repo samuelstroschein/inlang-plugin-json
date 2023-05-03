@@ -136,13 +136,35 @@ function parseResource(
  *  parseMessage("test", "Hello world")
  */
 function parseMessage(id: string, value: string): ast.Message {
+
+  const regex = /({[^}]+})/g;
+  const splitArray = value.split(regex);
+
+  const newElements = [];
+  for (let i = 0; i < splitArray.length; i++) {
+    if (regex.test(splitArray[i])) {
+      newElements.push({
+        type: "Placeholder",
+        body: {
+          type: "VariableReference",
+          name: splitArray[i].slice(1, -1)
+        }
+      });
+    } else {
+      newElements.push({
+        type: "Text",
+        value: splitArray[i]
+      });
+    }
+  }
+
   return {
     type: "Message",
     id: {
       type: "Identifier",
       name: id,
     },
-    pattern: { type: "Pattern", elements: [{ type: "Text", value: value }] },
+    pattern: { type: "Pattern", elements: newElements as Array<ast.Text | ast.Placeholder>},
   };
 }
 
@@ -173,5 +195,14 @@ function serializeResource(resource: ast.Resource): string {
  * does not support more than 1 element in a pattern.
  */
 function serializeMessage(message: ast.Message): [id: string, value: string] {
-  return [message.id.name, (message.pattern.elements[0] as ast.Text).value];
+  const newStringArr = [];
+  for( const element of message.pattern.elements) {
+    if (element.type === "Text") {
+      newStringArr.push(element.value);
+    } else if (element.type === "Placeholder") {
+      newStringArr.push(`{${element.body.name}}`);
+    }
+  }
+  const newString: string = newStringArr.join("")
+  return [message.id.name, newString];
 }

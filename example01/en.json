@@ -8,5 +8,6 @@
   "logout": {
     "title": "Logout",
     "description": "Click the button below to logout of the bot."
-  }
+  },
+  "variable-test": "Wow, {company name} is a great way for {costumer} to make the work done."
 }

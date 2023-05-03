@@ -31,7 +31,7 @@ type PluginSettings = {
    *  "./resources/{language}.json"
    */
   pathPattern: string;
-  variableReferencePattern?: string;
+  variableReferencePattern?: [string, string];
 };
 
 /**
@@ -81,8 +81,11 @@ export async function readResources(
     );
     // reading the json, and flattening it to avoid nested keys.
     const flatJson = flatten(json) as Record<string, string>;
-    result.push(parseResource(flatJson, language, args.settings.variableReferencePattern));
+
+    const regex = args.settings.variableReferencePattern && new RegExp(`(\\${args.settings.variableReferencePattern[0]}[^\\${args.settings.variableReferencePattern[1]}]+\\${args.settings.variableReferencePattern[1]})`, "g");
+    result.push(parseResource(flatJson, language, regex ));
   }
+  console.log(result[1].body.find(x => x.id.name === "variable-test")?.pattern.elements)
   return result;
 }
 
@@ -103,7 +106,7 @@ async function writeResources(
       "{language}",
       resource.languageTag.name
     );
-    await args.$fs.writeFile(resourcePath, serializeResource(resource));
+    await args.$fs.writeFile(resourcePath, serializeResource(resource, args.settings.variableReferencePattern));
   }
 }
 
@@ -117,7 +120,7 @@ function parseResource(
   /** flat JSON refers to the flatten function from https://www.npmjs.com/package/flat */
   flatJson: Record<string, string>,
   language: string,
-  regex?: string
+  regex?: RegExp,
 ): ast.Resource {
   return {
     type: "Resource",
@@ -137,12 +140,12 @@ function parseResource(
  * @example
  *  parseMessage("test", "Hello world")
  */
-function parseMessage(id: string, value: string, regex?: string): ast.Message {
+function parseMessage(id: string, value: string, regex?: RegExp): ast.Message {
   const newElements = [];
   if(regex){
     const splitArray = value.split(regex);
     for (let i = 0; i < splitArray.length; i++) {
-      if (new RegExp(regex).test(splitArray[i])) {
+      if (regex.test(splitArray[i])) {
         newElements.push({
           type: "Placeholder",
           body: {
@@ -184,10 +187,10 @@ function parseMessage(id: string, value: string, regex?: string): ast.Message {
  * @example
  *  serializeResource(resource)
  */
-function serializeResource(resource: ast.Resource): string {
+function serializeResource(resource: ast.Resource, variableReferencePattern?: [string, string]): string {
   const obj = {};
   resource.body.forEach((message) => {
-    const [key, value] = serializeMessage(message);
+    const [key, value] = serializeMessage(message, variableReferencePattern);
     safeSet(obj, key, value);
   });
   // stringify the object with beautification.
@@ -200,13 +203,13 @@ function serializeResource(resource: ast.Resource): string {
  * Note that only the first element of the pattern is used as inlang, as of v0.3,
  * does not support more than 1 element in a pattern.
  */
-function serializeMessage(message: ast.Message): [id: string, value: string] {
+function serializeMessage(message: ast.Message, variableReferencePattern?: [string, string]): [id: string, value: string] {
   const newStringArr = [];
   for( const element of message.pattern.elements) {
-    if (element.type === "Text") {
+    if (element.type === "Text" || !variableReferencePattern) {
       newStringArr.push(element.value);
     } else if (element.type === "Placeholder") {
-      newStringArr.push(`{${element.body.name}}`);
+      newStringArr.push(`${variableReferencePattern[0]}${element.body.name}${variableReferencePattern[1]}`);
     }
   }
   const newString: string = newStringArr.join("")

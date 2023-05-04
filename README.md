@@ -11,31 +11,63 @@ This plugin reads and writes resources that are stored as JSON. The following fe
 // filename: inlang.config.js
 
 export async function defineConfig(env) {
-  const plugin = await env.$import(
-    "https://cdn.jsdelivr.net/gh/samuelstroschein/inlang-plugin-json@1/dist/index.js"
-  );
+	const { default: pluginJson } = await env.$import(
+		'https://cdn.jsdelivr.net/gh/samuelstroschein/inlang-plugin-json@2/dist/index.js'
+	);
 
-  const pluginConfig = {
-    pathPattern: "./{language}.json",
-  };
+	const { default: standardLintRules } = await env.$import(
+		'https://cdn.jsdelivr.net/gh/inlang/standard-lint-rules@2/dist/index.js'
+	);
 
-  return {
-    referenceLanguage: "en",
-    languages: await plugin.getLanguages({
-      ...env,
-      pluginConfig,
-    }),
-    readResources: (args) =>
-      plugin.readResources({ ...args, ...env, pluginConfig }),
-    writeResources: (args) =>
-      plugin.writeResources({ ...args, ...env, pluginConfig }),
-  };
+	return {
+		referenceLanguage: 'en',
+		plugins: [pluginJson({ pathPattern: './translations/{language}.json' }), standardLintRules()]
+	};
 }
 ```
 
 ---
 
 Take a look at the [example inlang.config.js](./example/inlang.config.js) for the plugin config and usage.
+
+---
+
+### Settings
+
+#### Placeholder
+
+To correctly parse placeholders for code variables in strings, you must define the parsing pattern. This is done by adding the `variableReferencePattern` to the `jsonPlugin` inside `inlang.config.js` as follows:
+
+**Example**
+```js
+jsonPlugin({
+  variableReferencePattern: {
+    parse: /{}/,
+    serialize: (placeholder) => `{${placeholder.name}}`
+  }
+})
+```
+
+**Type definition**
+```js
+type PluginSettings = {
+ variableReferencePattern: {
+    parse: Regex,
+    serialize: (placeholder: ast.VariableReference) => string 
+  }
+}
+```
+
+**Common use cases**
+
+| Placeholder       | Parse         | Serialize                                     |
+|-------------------|---------------|-----------------------------------------------|
+| `{placeholder}`   | `/{}/`        | `(placeholder) => {{placeholder.name}}`   |
+| `{{placeholder}}` | `/{{}}/`      | `(placeholder) => {{{placeholder.name}}}` |
+| `${placeholder}`  | `/${}/`       | `(placeholder) => {${placeholder.name}}`  |
+| `%placeholder`    | `/%/`         | `(placeholder) => {%placeholder.name}`    |
+| `[placeholder]`   | `/[]/`        | `(placeholder) => {[placeholder.name]}`   |
+| `:placeholder`    | `/:/`         | `(placeholder) => {:placeholder.name}`    |
 
 ---
 

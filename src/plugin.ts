@@ -82,10 +82,8 @@ export async function readResources(
     // reading the json, and flattening it to avoid nested keys.
     const flatJson = flatten(json) as Record<string, string>;
 
-    const regex = args.settings.variableReferencePattern && new RegExp(`(\\${args.settings.variableReferencePattern[0]}[^\\${args.settings.variableReferencePattern[1]}]+\\${args.settings.variableReferencePattern[1]})`, "g");
-    result.push(parseResource(flatJson, language, regex ));
+    result.push(parseResource(flatJson, language, args.settings.variableReferencePattern ));
   }
-  console.log(result[1].body.find(x => x.id.name === "variable-test")?.pattern.elements)
   return result;
 }
 
@@ -120,7 +118,7 @@ function parseResource(
   /** flat JSON refers to the flatten function from https://www.npmjs.com/package/flat */
   flatJson: Record<string, string>,
   language: string,
-  regex?: RegExp,
+  variableReferencePattern?: [string, string],
 ): ast.Resource {
   return {
     type: "Resource",
@@ -129,7 +127,7 @@ function parseResource(
       name: language,
     },
     body: Object.entries(flatJson).map(([id, value]) =>
-      parseMessage(id, value, regex)
+      parseMessage(id, value, variableReferencePattern)
     ),
   };
 }
@@ -140,7 +138,11 @@ function parseResource(
  * @example
  *  parseMessage("test", "Hello world")
  */
-function parseMessage(id: string, value: string, regex?: RegExp): ast.Message {
+function parseMessage(id: string, value: string, variableReferencePattern?: [string, string]): ast.Message {
+  const regex = variableReferencePattern && 
+    (variableReferencePattern[1] 
+      ? new RegExp(`(\\${variableReferencePattern[0]}[^\\${variableReferencePattern[1]}]+\\${variableReferencePattern[1]})`, "g")
+      : new RegExp(`(${variableReferencePattern}\\w+)`, "g"));
   const newElements = [];
   if(regex){
     const splitArray = value.split(regex);
@@ -150,7 +152,9 @@ function parseMessage(id: string, value: string, regex?: RegExp): ast.Message {
           type: "Placeholder",
           body: {
             type: "VariableReference",
-            name: splitArray[i].slice(1, -1)
+            name: variableReferencePattern[1] 
+              ? splitArray[i].slice(variableReferencePattern[0].length, variableReferencePattern[1].length * -1)
+              : splitArray[i].slice(variableReferencePattern[0].length)
           }
         });
       } else {
@@ -209,7 +213,9 @@ function serializeMessage(message: ast.Message, variableReferencePattern?: [stri
     if (element.type === "Text" || !variableReferencePattern) {
       newStringArr.push(element.value);
     } else if (element.type === "Placeholder") {
-      newStringArr.push(`${variableReferencePattern[0]}${element.body.name}${variableReferencePattern[1]}`);
+      variableReferencePattern[1] 
+        ? newStringArr.push(`${variableReferencePattern[0]}${element.body.name}${variableReferencePattern[1]}`)
+        : newStringArr.push(`${variableReferencePattern[0]}${element.body.name}`);
     }
   }
   const newString: string = newStringArr.join("")

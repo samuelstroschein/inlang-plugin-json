@@ -5,6 +5,8 @@ This plugin reads and writes resources that are stored as JSON. The following fe
 - [x] key-value pair (`"key": "value"`)
 - [x] nested key-value pairs (`{ "key": { "nested-key": "value" } }`)
 
+<br>
+
 ## Usage
 
 ```js
@@ -26,11 +28,9 @@ export async function defineConfig(env) {
 }
 ```
 
----
-
 Take a look at the [example inlang.config.js](./example/inlang.config.js) for the plugin config and usage.
 
----
+<br>
 
 ## PluginSettings
 
@@ -91,11 +91,13 @@ jsonPlugin({
 | `[placeholder]`   | `["[", "]"]`  |
 | `:placeholder`    | `[":"]`       |
 
----
+<br>
 
-### Limitations
+## Limitations
 
-- If a user creates a message with a nested id i.e. `example.nested` and `example` is also a message, the plugin will break.
+If a user creates a message with a nested id i.e. `example.nested` and `example` is also a message, the plugin will break.
+
+<br>
 
 ## Contributing
 

@@ -31,6 +31,7 @@ type PluginSettings = {
    *  "./resources/{language}.json"
    */
   pathPattern: string;
+  variableReferencePattern?: [string, string];
 };
 
 /**
@@ -80,7 +81,8 @@ export async function readResources(
     );
     // reading the json, and flattening it to avoid nested keys.
     const flatJson = flatten(json) as Record<string, string>;
-    result.push(parseResource(flatJson, language));
+
+    result.push(parseResource(flatJson, language, args.settings.variableReferencePattern ));
   }
   return result;
 }
@@ -102,7 +104,7 @@ async function writeResources(
       "{language}",
       resource.languageTag.name
     );
-    await args.$fs.writeFile(resourcePath, serializeResource(resource));
+    await args.$fs.writeFile(resourcePath, serializeResource(resource, args.settings.variableReferencePattern));
   }
 }
 
@@ -115,7 +117,8 @@ async function writeResources(
 function parseResource(
   /** flat JSON refers to the flatten function from https://www.npmjs.com/package/flat */
   flatJson: Record<string, string>,
-  language: string
+  language: string,
+  variableReferencePattern?: [string, string],
 ): ast.Resource {
   return {
     type: "Resource",
@@ -124,7 +127,7 @@ function parseResource(
       name: language,
     },
     body: Object.entries(flatJson).map(([id, value]) =>
-      parseMessage(id, value)
+      parseMessage(id, value, variableReferencePattern)
     ),
   };
 }
@@ -135,14 +138,46 @@ function parseResource(
  * @example
  *  parseMessage("test", "Hello world")
  */
-function parseMessage(id: string, value: string): ast.Message {
+function parseMessage(id: string, value: string, variableReferencePattern?: [string, string]): ast.Message {
+  const regex = variableReferencePattern && 
+    (variableReferencePattern[1] 
+      ? new RegExp(`(\\${variableReferencePattern[0]}[^\\${variableReferencePattern[1]}]+\\${variableReferencePattern[1]})`, "g")
+      : new RegExp(`(${variableReferencePattern}\\w+)`, "g"));
+  const newElements = [];
+  if(regex){
+    const splitArray = value.split(regex);
+    for (let i = 0; i < splitArray.length; i++) {
+      if (regex.test(splitArray[i])) {
+        newElements.push({
+          type: "Placeholder",
+          body: {
+            type: "VariableReference",
+            name: variableReferencePattern[1] 
+              ? splitArray[i].slice(variableReferencePattern[0].length, variableReferencePattern[1].length * -1)
+              : splitArray[i].slice(variableReferencePattern[0].length)
+          }
+        });
+      } else {
+        newElements.push({
+          type: "Text",
+          value: splitArray[i]
+        });
+      }
+    }
+  } else {
+    newElements.push({
+      type: "Text",
+      value: value
+    });
+  }
+
   return {
     type: "Message",
     id: {
       type: "Identifier",
       name: id,
     },
-    pattern: { type: "Pattern", elements: [{ type: "Text", value: value }] },
+    pattern: { type: "Pattern", elements: newElements as Array<ast.Text | ast.Placeholder>},
   };
 }
 
@@ -156,10 +191,10 @@ function parseMessage(id: string, value: string): ast.Message {
  * @example
  *  serializeResource(resource)
  */
-function serializeResource(resource: ast.Resource): string {
+function serializeResource(resource: ast.Resource, variableReferencePattern?: [string, string]): string {
   const obj = {};
   resource.body.forEach((message) => {
-    const [key, value] = serializeMessage(message);
+    const [key, value] = serializeMessage(message, variableReferencePattern);
     safeSet(obj, key, value);
   });
   // stringify the object with beautification.
@@ -172,6 +207,17 @@ function serializeResource(resource: ast.Resource): string {
  * Note that only the first element of the pattern is used as inlang, as of v0.3,
  * does not support more than 1 element in a pattern.
  */
-function serializeMessage(message: ast.Message): [id: string, value: string] {
-  return [message.id.name, (message.pattern.elements[0] as ast.Text).value];
+function serializeMessage(message: ast.Message, variableReferencePattern?: [string, string]): [id: string, value: string] {
+  const newStringArr = [];
+  for( const element of message.pattern.elements) {
+    if (element.type === "Text" || !variableReferencePattern) {
+      newStringArr.push(element.value);
+    } else if (element.type === "Placeholder") {
+      variableReferencePattern[1] 
+        ? newStringArr.push(`${variableReferencePattern[0]}${element.body.name}${variableReferencePattern[1]}`)
+        : newStringArr.push(`${variableReferencePattern[0]}${element.body.name}`);
+    }
+  }
+  const newString: string = newStringArr.join("")
+  return [message.id.name, newString];
 }

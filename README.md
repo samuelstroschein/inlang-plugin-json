@@ -13,18 +13,19 @@ This plugin reads and writes resources that are stored as JSON. The following fe
 // filename: inlang.config.js
 
 export async function defineConfig(env) {
-	const { default: pluginJson } = await env.$import(
-		'https://cdn.jsdelivr.net/gh/samuelstroschein/inlang-plugin-json@2/dist/index.js'
-	);
 
-	const { default: standardLintRules } = await env.$import(
-		'https://cdn.jsdelivr.net/gh/inlang/standard-lint-rules@2/dist/index.js'
-	);
+  const { default: jsonPlugin } = await env.$import(
+    "https://cdn.jsdelivr.net/gh/samuelstroschein/inlang-plugin-json@2/dist/index.js"
+  );
 
-	return {
-		referenceLanguage: 'en',
-		plugins: [pluginJson({ pathPattern: './translations/{language}.json' }), standardLintRules()]
-	};
+  return {
+    referenceLanguage: "en",
+    plugins: [
+      jsonPlugin({
+        pathPattern: "./{language}.json",
+      })
+    ]
+  };
 }
 ```
 
@@ -55,7 +56,7 @@ pathPattern: string;
 
 **Example**
 ```typescript
-pathPattern: "translations/locales/{language}.json";
+pathPattern: "./{language}.json";
 ```
 
 

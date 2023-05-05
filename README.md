@@ -32,42 +32,64 @@ Take a look at the [example inlang.config.js](./example/inlang.config.js) for th
 
 ---
 
-### Settings
+## PluginSettings
 
-#### Placeholder
+Our plugin offers further configuration options that can be passed as arguments. These options include `pathPattern` and `variableReferencePattern` (optional), and can be adjusted to suit your needs.
 
-To correctly parse placeholders for code variables in strings, you must define the parsing pattern. This is done by adding the `variableReferencePattern` to the `jsonPlugin` inside `inlang.config.js` as follows:
-
-**Example**
-```js
-jsonPlugin({
-  variableReferencePattern: {
-    parse: /{}/,
-    serialize: (placeholder) => `{${placeholder.name}}`
-  }
-})
+Here is the syntax for the PluginSettings object in TypeScript:
+```typescript
+type PluginSettings = {
+  pathPattern: string;
+  variableReferencePattern?: [string, string];
+};
 ```
 
+### `pathPattern`
+
+To use our plugin, you need to provide a path to the directory where your language-specific files are stored. Use the dynamic path syntax `{language}` to specify the language name. Note that subfile structures are not supported.
+ 
 **Type definition**
-```js
-type PluginSettings = {
- variableReferencePattern: {
-    parse: Regex,
-    serialize: (placeholder: ast.VariableReference) => string 
-  }
-}
+```typescript
+pathPattern: string;
+```
+
+**Example**
+```typescript
+pathPattern: "translations/locales/{language}.json";
+```
+
+
+### `variableReferencePattern`
+
+This setting in our plugin allows you to specify the pattern for parsing placeholders for code variables in strings. To define the parsing pattern, add `variableReferencePattern` to the jsonPlugin in your `inlang.config.js` file.
+
+The `variableReferencePattern` should be defined as a tuple that includes a prefix and a suffix pattern. These patterns create a dynamic regex under the hood to catch placeholders out of the string. If your pattern is something like this `:name`, you can provide only the prefix.
+
+Here is the type definition for `variableReferencePattern` in TypeScript:
+
+**Type definition**
+```typescript
+ variableReferencePattern?: [string, string];
+```
+
+**Example**
+```typescript
+jsonPlugin({
+  pathPattern: "somePath"
+  variableReferencePattern: ["{", "}"];
+})
 ```
 
 **Common use cases**
 
-| Placeholder       | Parse         | Serialize                                     |
-|-------------------|---------------|-----------------------------------------------|
-| `{placeholder}`   | `/{}/`        | `(placeholder) => {{placeholder.name}}`   |
-| `{{placeholder}}` | `/{{}}/`      | `(placeholder) => {{{placeholder.name}}}` |
-| `${placeholder}`  | `/${}/`       | `(placeholder) => {${placeholder.name}}`  |
-| `%placeholder`    | `/%/`         | `(placeholder) => {%placeholder.name}`    |
-| `[placeholder]`   | `/[]/`        | `(placeholder) => {[placeholder.name]}`   |
-| `:placeholder`    | `/:/`         | `(placeholder) => {:placeholder.name}`    |
+| Placeholder       | Pattern       |
+|-------------------|---------------|
+| `{placeholder}`   | `["{", "}"]`  |
+| `{{placeholder}}` | `["{{", "}}"]`|
+| `${placeholder}`  | `["${", "}"]` |
+| `%placeholder`    | `["%"]`       |
+| `[placeholder]`   | `["[", "]"]`  |
+| `:placeholder`    | `[":"]`       |
 
 ---
 

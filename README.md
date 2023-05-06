@@ -56,7 +56,7 @@ pathPattern: string;
 
 **Example**
 ```typescript
-pathPattern: "./{language}.json";
+pathPattern: "./{language}.json"
 ```
 
 
@@ -76,8 +76,8 @@ Here is the type definition for `variableReferencePattern` in TypeScript:
 **Example**
 ```typescript
 jsonPlugin({
-  pathPattern: "somePath"
-  variableReferencePattern: ["{", "}"];
+  pathPattern: "somePath",
+  variableReferencePattern: ["{", "}"]
 })
 ```
 

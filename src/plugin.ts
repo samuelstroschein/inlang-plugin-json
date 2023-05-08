@@ -84,6 +84,7 @@ export async function readResources(
 
     result.push(parseResource(flatJson, language, args.settings.variableReferencePattern ));
   }
+  //console.log(result[1].body.find(x => x.id.name === "logout.description")?.pattern.elements)
   return result;
 }
 
@@ -120,6 +121,7 @@ function parseResource(
   language: string,
   variableReferencePattern?: [string, string],
 ): ast.Resource {
+
   return {
     type: "Resource",
     languageTag: {
@@ -158,10 +160,12 @@ function parseMessage(id: string, value: string, variableReferencePattern?: [str
           }
         });
       } else {
-        newElements.push({
-          type: "Text",
-          value: splitArray[i]
-        });
+        if(splitArray[i] !== ""){
+          newElements.push({
+            type: "Text",
+            value: splitArray[i]
+          });
+        }
       }
     }
   } else {

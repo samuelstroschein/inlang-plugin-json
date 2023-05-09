@@ -4,10 +4,14 @@ import type * as ast from "@inlang/core/ast";
 import { createPlugin } from "@inlang/core/plugin";
 import flatten from "flat";
 import safeSet from "just-safe-set";
+import { zPluginSettings, type PluginSettings } from "./settings.js";
 
 export const plugin = createPlugin<PluginSettings>(({ settings, env }) => ({
   id: "samuelstroschein.inlangPluginJson",
   async config() {
+    // will throw if the settings are invalid,
+    // leading to better DX because fails fast
+    zPluginSettings.parse(settings);
     return {
       languages: await getLanguages({
         $fs: env.$fs,
@@ -20,19 +24,6 @@ export const plugin = createPlugin<PluginSettings>(({ settings, env }) => ({
     };
   },
 }));
-
-type PluginSettings = {
-  /**
-   * Defines the path pattern for the resources.
-   *
-   * Must include the `{language}` placeholder.
-   *
-   * @example
-   *  "./resources/{language}.json"
-   */
-  pathPattern: string;
-  variableReferencePattern?: [string, string];
-};
 
 /**
  * Automatically derives the languages in this repository.
@@ -82,7 +73,9 @@ export async function readResources(
     // reading the json, and flattening it to avoid nested keys.
     const flatJson = flatten(json) as Record<string, string>;
 
-    result.push(parseResource(flatJson, language, args.settings.variableReferencePattern ));
+    result.push(
+      parseResource(flatJson, language, args.settings.variableReferencePattern)
+    );
   }
   //console.log(result[1].body.find(x => x.id.name === "logout.description")?.pattern.elements)
   return result;
@@ -105,7 +98,10 @@ async function writeResources(
       "{language}",
       resource.languageTag.name
     );
-    await args.$fs.writeFile(resourcePath, serializeResource(resource, args.settings.variableReferencePattern));
+    await args.$fs.writeFile(
+      resourcePath,
+      serializeResource(resource, args.settings.variableReferencePattern)
+    );
   }
 }
 
@@ -119,9 +115,8 @@ function parseResource(
   /** flat JSON refers to the flatten function from https://www.npmjs.com/package/flat */
   flatJson: Record<string, string>,
   language: string,
-  variableReferencePattern?: [string, string],
+  variableReferencePattern?: [string, string]
 ): ast.Resource {
-
   return {
     type: "Resource",
     languageTag: {
@@ -140,13 +135,21 @@ function parseResource(
  * @example
  *  parseMessage("test", "Hello world")
  */
-function parseMessage(id: string, value: string, variableReferencePattern?: [string, string]): ast.Message {
-  const regex = variableReferencePattern && 
-    (variableReferencePattern[1] 
-      ? new RegExp(`(\\${variableReferencePattern[0]}[^\\${variableReferencePattern[1]}]+\\${variableReferencePattern[1]})`, "g")
+function parseMessage(
+  id: string,
+  value: string,
+  variableReferencePattern?: [string, string]
+): ast.Message {
+  const regex =
+    variableReferencePattern &&
+    (variableReferencePattern[1]
+      ? new RegExp(
+          `(\\${variableReferencePattern[0]}[^\\${variableReferencePattern[1]}]+\\${variableReferencePattern[1]})`,
+          "g"
+        )
       : new RegExp(`(${variableReferencePattern}\\w+)`, "g"));
   const newElements = [];
-  if(regex){
+  if (regex) {
     const splitArray = value.split(regex);
     for (let i = 0; i < splitArray.length; i++) {
       if (regex.test(splitArray[i])) {
@@ -154,16 +157,19 @@ function parseMessage(id: string, value: string, variableReferencePattern?: [str
           type: "Placeholder",
           body: {
             type: "VariableReference",
-            name: variableReferencePattern[1] 
-              ? splitArray[i].slice(variableReferencePattern[0].length, variableReferencePattern[1].length * -1)
-              : splitArray[i].slice(variableReferencePattern[0].length)
-          }
+            name: variableReferencePattern[1]
+              ? splitArray[i].slice(
+                  variableReferencePattern[0].length,
+                  variableReferencePattern[1].length * -1
+                )
+              : splitArray[i].slice(variableReferencePattern[0].length),
+          },
         });
       } else {
-        if(splitArray[i] !== ""){
+        if (splitArray[i] !== "") {
           newElements.push({
             type: "Text",
-            value: splitArray[i]
+            value: splitArray[i],
           });
         }
       }
@@ -171,7 +177,7 @@ function parseMessage(id: string, value: string, variableReferencePattern?: [str
   } else {
     newElements.push({
       type: "Text",
-      value: value
+      value: value,
     });
   }
 
@@ -181,7 +187,10 @@ function parseMessage(id: string, value: string, variableReferencePattern?: [str
       type: "Identifier",
       name: id,
     },
-    pattern: { type: "Pattern", elements: newElements as Array<ast.Text | ast.Placeholder>},
+    pattern: {
+      type: "Pattern",
+      elements: newElements as Array<ast.Text | ast.Placeholder>,
+    },
   };
 }
 
@@ -195,7 +204,10 @@ function parseMessage(id: string, value: string, variableReferencePattern?: [str
  * @example
  *  serializeResource(resource)
  */
-function serializeResource(resource: ast.Resource, variableReferencePattern?: [string, string]): string {
+function serializeResource(
+  resource: ast.Resource,
+  variableReferencePattern?: [string, string]
+): string {
   const obj = {};
   resource.body.forEach((message) => {
     const [key, value] = serializeMessage(message, variableReferencePattern);
@@ -211,17 +223,24 @@ function serializeResource(resource: ast.Resource, variableReferencePattern?: [s
  * Note that only the first element of the pattern is used as inlang, as of v0.3,
  * does not support more than 1 element in a pattern.
  */
-function serializeMessage(message: ast.Message, variableReferencePattern?: [string, string]): [id: string, value: string] {
+function serializeMessage(
+  message: ast.Message,
+  variableReferencePattern?: [string, string]
+): [id: string, value: string] {
   const newStringArr = [];
-  for( const element of message.pattern.elements) {
+  for (const element of message.pattern.elements) {
     if (element.type === "Text" || !variableReferencePattern) {
       newStringArr.push(element.value);
     } else if (element.type === "Placeholder") {
-      variableReferencePattern[1] 
-        ? newStringArr.push(`${variableReferencePattern[0]}${element.body.name}${variableReferencePattern[1]}`)
-        : newStringArr.push(`${variableReferencePattern[0]}${element.body.name}`);
+      variableReferencePattern[1]
+        ? newStringArr.push(
+            `${variableReferencePattern[0]}${element.body.name}${variableReferencePattern[1]}`
+          )
+        : newStringArr.push(
+            `${variableReferencePattern[0]}${element.body.name}`
+          );
     }
   }
-  const newString: string = newStringArr.join("")
+  const newString: string = newStringArr.join("");
   return [message.id.name, newString];
 }

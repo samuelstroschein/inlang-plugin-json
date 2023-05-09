@@ -16,7 +16,8 @@
   "dependencies": {
     "@inlang/core": "^0.7.13",
     "flat": "^5.0.2",
-    "just-safe-set": "^4.2.1"
+    "just-safe-set": "^4.2.1",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@types/flat": "^5.0.2",

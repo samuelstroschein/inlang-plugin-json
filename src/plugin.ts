@@ -4,14 +4,14 @@ import type * as ast from "@inlang/core/ast";
 import { createPlugin } from "@inlang/core/plugin";
 import flatten from "flat";
 import safeSet from "just-safe-set";
-import { zPluginSettings, type PluginSettings } from "./settings.js";
+import { throwIfInvalidSettings, type PluginSettings } from "./settings.js";
 
 export const plugin = createPlugin<PluginSettings>(({ settings, env }) => ({
   id: "samuelstroschein.inlangPluginJson",
   async config() {
     // will throw if the settings are invalid,
     // leading to better DX because fails fast
-    zPluginSettings.parse(settings);
+    throwIfInvalidSettings(settings);
     return {
       languages: await getLanguages({
         $fs: env.$fs,

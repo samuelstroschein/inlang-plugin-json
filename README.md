@@ -22,7 +22,7 @@ export async function defineConfig(env) {
     referenceLanguage: "en",
     plugins: [
       jsonPlugin({
-        pathPattern: "./{language}.json",
+        pathPattern: "./resources/{language}.json",
       })
     ]
   };
@@ -48,7 +48,7 @@ type PluginSettings = {
 ### `pathPattern`
 
 To use our plugin, you need to provide a path to the directory where your language-specific files are stored. Use the dynamic path syntax `{language}` to specify the language name. Note that subfile structures are not supported.
- 
+
 **Type definition**
 ```typescript
 pathPattern: string;
@@ -56,7 +56,7 @@ pathPattern: string;
 
 **Example**
 ```typescript
-pathPattern: "./{language}.json"
+pathPattern: "./resources/{language}.json"
 ```
 
 

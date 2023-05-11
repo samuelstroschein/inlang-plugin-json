@@ -1,0 +1,13 @@
+{
+    "test": "DO NOT CHANGE THIS MESSAGE. This message is used for testing {test}",
+    "test-nested": {
+        "test": "DO NOT CHANGE THIS MESSAGE. This message is used for testing purposes."
+    },
+    "intro": "The following is a list of all the commands you {test} use with the bot.",
+    "button": "{test} here to see the commands",
+    "logout": {
+        "title": "Logout",
+        "description": "Click the button below to logout of the bot."
+    }
+}
+  

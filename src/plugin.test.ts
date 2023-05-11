@@ -17,6 +17,6 @@ it("should throw if the path pattern does not include the {language} placeholder
 it("should not throw if the path pattern is valid", async () => {
   const env = await mockEnvironment({});
   await env.$fs.writeFile("./resources/en.json", "{}");
-  const x = plugin({ pathPattern: "./{language}.json" })(env);
+  const x = plugin({ pathPattern: "./resources/{language}.json" })(env);
   expect(await x.config({})).toBeTruthy();
 });

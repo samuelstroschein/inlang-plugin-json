@@ -36,11 +36,18 @@ async function getLanguages(args: {
   const [pathBeforeLanguage, pathAfterLanguage] =
     args.settings.pathPattern.split("{language}");
   const paths = await args.$fs.readdir(pathBeforeLanguage);
-  const languages = [];
-
+  const languages: Array<string> = [];
   for (const language of paths) {
-    // remove the .json extension to only get language name
-    if (typeof language === "string" && language.endsWith(".json")) {
+    if(!language.includes(".")) {
+      // this is a dir
+      for (const languagefile of await args.$fs.readdir(`${pathBeforeLanguage}${language}`)) {
+        // this is the file, check if the language folder contains .json files
+        if (languagefile.endsWith(".json") && !languages.some((l) => l === language)) {
+          languages.push(language);
+        }
+      }
+    } else if (language.endsWith(".json")) {
+      // this is the file, remove the .json extension to only get language name
       languages.push(language.replace(".json", ""));
     }
   }
@@ -67,17 +74,30 @@ export async function readResources(
       "{language}",
       language
     );
-    const json = JSON.parse(
-      (await args.$fs.readFile(resourcePath, { encoding: "utf-8" })) as string
-    );
-    // reading the json, and flattening it to avoid nested keys.
-    const flatJson = flatten(json) as Record<string, string>;
-
-    result.push(
-      parseResource(flatJson, language, args.settings.variableReferencePattern)
-    );
+    //try catch workaround because stats is not working
+    try {
+      // is file
+      const json = JSON.parse((await args.$fs.readFile(resourcePath, { encoding: "utf-8" })) as string);
+      // reading the json, and flattening it to avoid nested keys.
+      const flatJson = flatten(json) as Record<string, string>;
+      result.push(
+        parseResource(flatJson, language, args.settings.variableReferencePattern)
+      );
+    } catch {
+      // is directory
+      let allFlatJson: any = {}
+      const path = `${resourcePath.replace("/*.json", "")}`;
+      const files = await args.$fs.readdir(path);
+      for (const languagefile of files) {
+        const json: any = {};
+        json[languagefile.replace(".json", "")] = JSON.parse(await args.$fs.readFile(`${path}/${languagefile}`, { encoding: "utf-8" }) as string)
+        const flatJson = flatten(json) as Record<string, string>;
+        allFlatJson = {...allFlatJson, ...flatJson}
+      }
+      result.push(parseResource(allFlatJson, language, args.settings.variableReferencePattern));
+    }
   }
-  //console.log(result[1].body.find(x => x.id.name === "logout.description")?.pattern.elements)
+  //console.log(result[1].body.find(x => x.id.name === "hallo.test")?.pattern.elements);
   return result;
 }
 
@@ -93,15 +113,51 @@ async function writeResources(
     $fs: InlangEnvironment["$fs"];
   }
 ): ReturnType<InlangConfig["writeResources"]> {
+  const [, pathAfterLanguage] = args.settings.pathPattern.split("{language}");
+  const pathAfterLanguageIsDirectory = pathAfterLanguage.startsWith("/");
+
   for (const resource of args.resources) {
     const resourcePath = args.settings.pathPattern.replace(
       "{language}",
       resource.languageTag.name
     );
-    await args.$fs.writeFile(
-      resourcePath,
-      serializeResource(resource, args.settings.variableReferencePattern)
-    );
+  
+    if(pathAfterLanguageIsDirectory){
+
+      //deserialize the file names
+      const clonedResource = structuredClone(resource.body)
+
+      //get prefixes
+      const prefixes: Array<string> = [];
+      clonedResource.map(message => {
+        const split = message.id.name.split('.');
+        const prefix = split.shift();
+        if(prefix && !prefixes.some(p => p === prefix)){
+          prefixes.push(prefix);
+        }
+      });
+
+      //sort messages by prefix
+      for (const prefix of prefixes) {
+        const filteredMassages = clonedResource
+          .filter(message => message.id.name.startsWith(prefix))
+          .map(message => { 
+            return {...message, 
+              id: {
+                ...message.id,
+                name: message.id.name.replace(`${prefix}.`, "")
+              }
+            }
+          })
+        const splitedResource: ast.Resource = { type: resource.type, languageTag: resource.languageTag, body: filteredMassages}
+        await args.$fs.writeFile(resourcePath.replace("*", prefix), serializeResource(splitedResource, args.settings.variableReferencePattern));
+      }
+    }else{
+      await args.$fs.writeFile(
+        resourcePath,
+        serializeResource(resource, args.settings.variableReferencePattern)
+      );
+    }
   }
 }
 

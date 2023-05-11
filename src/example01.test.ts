@@ -12,11 +12,7 @@ test("inlang's config validation should pass", async () => {
   });
 
   const module = await import("../example01/inlang.config.js");
-
   const config = await setupConfig({ module, env });
-  const resources = await config.readResources({ config });
-
-  //console.log(resources[1].body.find(x => x.id.name === "variable-test")?.pattern.elements);
 
   const [isOk, error] = await testConfig({ config });
   if (error) {

@@ -1,5 +1,5 @@
 {
-    "test": "DO NOT CHANGE THIS MESSAGE. This message is used for testing {test}",
+    "test": "DO NOT CHANGE THIS MESSAGE. This message is used for testing purposes",
     "test-nested": {
         "test": "DO NOT CHANGE THIS MESSAGE. This message is used for testing purposes."
     },

@@ -2,8 +2,7 @@ import type { InlangConfig } from "@inlang/core/config";
 import type { InlangEnvironment } from "@inlang/core/environment";
 import type * as ast from "@inlang/core/ast";
 import { createPlugin } from "@inlang/core/plugin";
-import flatten from "flat";
-import safeSet from "just-safe-set";
+import flatten,  { unflatten } from "flat";
 import { throwIfInvalidSettings, type PluginSettings } from "./settings.js";
 
 export const plugin = createPlugin<PluginSettings>(({ settings, env }) => ({
@@ -97,7 +96,7 @@ export async function readResources(
       result.push(parseResource(allFlatJson, language, args.settings.variableReferencePattern));
     }
   }
-  //console.log(result[1].body.find(x => x.id.name === "hallo.test")?.pattern.elements);
+  //console.log(result[0].body)
   return result;
 }
 
@@ -137,7 +136,6 @@ async function writeResources(
         }
       });
 
-      //sort messages by prefix
       for (const prefix of prefixes) {
         const filteredMassages = clonedResource
           .filter(message => message.id.name.startsWith(prefix))
@@ -155,7 +153,7 @@ async function writeResources(
     }else{
       await args.$fs.writeFile(
         resourcePath,
-        serializeResource(resource, args.settings.variableReferencePattern)
+        serializeResource(resource, args.settings.variableReferencePattern, args.settings.serialize)
       );
     }
   }
@@ -262,15 +260,17 @@ function parseMessage(
  */
 function serializeResource(
   resource: ast.Resource,
-  variableReferencePattern?: [string, string]
+  variableReferencePattern?: [string, string],
+  serialize?: { space?: Parameters<typeof JSON.stringify>[2], flatten?: boolean }
 ): string {
-  const obj = {};
-  resource.body.forEach((message) => {
+  let obj = {};
+  resource.body.forEach((message, i) => {
     const [key, value] = serializeMessage(message, variableReferencePattern);
-    safeSet(obj, key, value);
+    obj = {...obj, ...{[key]: value}}
   });
   // stringify the object with beautification.
-  return JSON.stringify(obj, null, 2);
+  const flatten = serialize?.flatten ? serialize?.flatten : false;
+  return JSON.stringify(flatten ? obj : unflatten(obj), null, serialize?.space || 2);
 }
 
 /**

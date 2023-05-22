@@ -1,3 +1,5 @@
+import { serialize } from "v8";
+
  /**
  * @type {import("@inlang/core/config").DefineConfig}
  */
@@ -9,7 +11,7 @@
       plugins: [
         plugin({
           pathPattern: "./example02/{language}/*.json",
-          variableReferencePattern: ["{", "}"]
+          variableReferencePattern: ["{", "}"],
         }),
       ],
     };

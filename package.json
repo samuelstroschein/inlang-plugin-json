@@ -15,8 +15,7 @@
   },
   "dependencies": {
     "@inlang/core": "^0.8.2",
-    "flat": "^5.0.2",
-    "just-safe-set": "^4.2.1"
+    "flat": "^5.0.2"
   },
   "devDependencies": {
     "@size-limit/preset-app": "^8.2.4",

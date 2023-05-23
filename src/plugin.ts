@@ -266,11 +266,12 @@ function serializeResource(
   let obj = {};
   resource.body.forEach((message, i) => {
     const [key, value] = serializeMessage(message, variableReferencePattern);
-    obj = {...obj, ...{[key]: value}}
+    obj = {...obj, ...{[key.slice(-1) === "." ? (key.slice(0,-1) + "FINAL_CHAR_DOT") : key]: value}}
   });
+  
   // stringify the object with beautification.
   const flatten = serialize?.flatten ? serialize?.flatten : false;
-  return JSON.stringify(flatten ? obj : unflatten(obj), null, serialize?.space || 2);
+  return JSON.stringify(flatten ? obj : unflatten(obj), null, serialize?.space || 2).replace(/FINAL_CHAR_DOT/gm, ".");
 }
 
 /**

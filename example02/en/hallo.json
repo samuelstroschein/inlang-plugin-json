@@ -8,6 +8,7 @@
     "logout": {
         "title": "Logout",
         "description": "Click the button below to logout of the bot."
-    }
+    },
+    "This is a dot.": "{test} here to see the commands"
 }
   

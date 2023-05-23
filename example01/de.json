@@ -1,7 +1,8 @@
 {
-  "intro": "Folgende Befehle stehen zur Verfügung.",
+  "intro": "Folgende Befehle stehen zur Verfügung!",
   "button": "Klicke hier um die Befehle zu sehen.",
   "logout": {
-    "title": "Ausloggen"
+      "title": "Ausloggen"
   }
 }
+  

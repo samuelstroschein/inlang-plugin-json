@@ -1,5 +1,3 @@
-import { serialize } from "v8";
-
  /**
  * @type {import("@inlang/core/config").DefineConfig}
  */

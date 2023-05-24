@@ -41,11 +41,11 @@ async function getLanguages(args: {
       // this is a dir
       for (const languagefile of await args.$fs.readdir(`${pathBeforeLanguage}${language}`)) {
         // this is the file, check if the language folder contains .json files
-        if (languagefile.endsWith(".json") && !languages.some((l) => l === language)) {
+        if (languagefile.endsWith(".json") && !args.settings.ignore?.some(s => s === language) && !languages.some((l) => l === language)) {
           languages.push(language);
         }
       }
-    } else if (language.endsWith(".json")) {
+    } else if (language.endsWith(".json") && !args.settings.ignore?.some(s => s === language)) {
       // this is the file, remove the .json extension to only get language name
       languages.push(language.replace(".json", ""));
     }
@@ -97,7 +97,7 @@ export async function readResources(
       result.push(parseResource(allJson, language, true, space, args.settings.variableReferencePattern ));
     }
   }
-  console.log(result[0].body)
+  //console.log(result[0].body)
   return result;
 }
 

@@ -10,6 +10,7 @@ export async function defineConfig(env) {
       plugin({
         pathPattern: "./example01/{language}.json",
         variableReferencePattern: ["{", "}"],
+        ignore: [".eslintrc.json"]
       }),
     ],
   };

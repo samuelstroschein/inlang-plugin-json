@@ -30,4 +30,5 @@ export type PluginSettings = {
    */
   pathPattern: string;
   variableReferencePattern?: [string, string];
+  ignore?: string[];
 };

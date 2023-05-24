@@ -1,12 +1,17 @@
 {
-  "test": "DO NOT CHANGE THIS MESSAGE. This message is used for testing purposes",
-  "test-nested": {
-      "test": "DO NOT CHANGE THIS MESSAGE. This message is used for testing purposes."
-  },
-  "intro": "The following is a list of all the commands you {test} use with the bot.",
-  "button": "{test} here to see the commands",
-  "logout": {
-      "title": "Logout",
-      "description": "Click the button below to logout of the bot."
-  }
+  "signUp.alreadyHaveAnAccount": "Ja tens un compte?",
+  "signUp.emailHint": "Correu electrònic",
+  "signUp.passwordHint": "Contrasenya",
+  "signUp.repeatPasswordHint": "Repeteix la contrasenya",
+  "signIn.loginTitle": "Inicia sessió a @:appName",
+  "signIn.loginButtonText": "Inicia sessió",
+  "signIn.buttonText": "Inicia sessió",
+  "signIn.forgotPassword": "Has oblidat la contrasenya?",
+  "signIn.emailHint": "Correu electrònic",
+  "signIn.passwordHint": "Contrasenya",
+  "signIn.dontHaveAnAccount": "No tens un compte?",
+  "signIn.repeatPasswordEmptyError": "La contrasenya repetida no pot ser buida",
+  "signIn.unmatchedPasswordError": "Les contrasenyes no concorden",
+  "workspace.create": "Crear un espai de treball",
+  "workspace.hint": "espai de treball"
 }

@@ -33,7 +33,7 @@ async function getLanguages(args: {
 }) {
   // replace the path
   const [pathBeforeLanguage, pathAfterLanguage] =
-    args.settings.pathPattern.split("{language}");
+  args.settings.pathPattern.split("{language}");
   const paths = await args.$fs.readdir(pathBeforeLanguage);
   const languages: Array<string> = [];
   for (const language of paths) {
@@ -79,14 +79,12 @@ export async function readResources(
       const stringifiedFile = await args.$fs.readFile(resourcePath, { encoding: "utf-8" }) as string;
       const json = JSON.parse(stringifiedFile);
       const space = detectJsonSpacing(await args.$fs.readFile(resourcePath, { encoding: "utf-8" }));
-      // reading the json, and flattening it to avoid nested keys.
-      const flatJson = flatten(json) as Record<string, string>;
       result.push(
-        parseResource(flatJson, language, false, space, args.settings.variableReferencePattern)
+        parseResource(json, language, false, space, args.settings.variableReferencePattern)
       );
     } catch {
       // is directory
-      let allFlatJson: any = {}
+      let allJson: any = {}
       const path = `${resourcePath.replace("/*.json", "")}`;
       const files = await args.$fs.readdir(path);
       const space = detectJsonSpacing(await args.$fs.readFile(`${path}/${files[0]}`, { encoding: "utf-8" }));
@@ -94,13 +92,12 @@ export async function readResources(
         const json: any = {};
         const stringifiedFile = await args.$fs.readFile(`${path}/${languagefile}`, { encoding: "utf-8" }) as string;
         json[languagefile.replace(".json", "")] = JSON.parse(stringifiedFile)
-        const flatJson = flatten(json) as Record<string, string>;
-        allFlatJson = {...allFlatJson, ...flatJson}
+        allJson = {...allJson, ...json}
       }
-      result.push(parseResource(allFlatJson, language, true, space, args.settings.variableReferencePattern ));
+      result.push(parseResource(allJson, language, true, space, args.settings.variableReferencePattern ));
     }
   }
-  //console.log(result[0])
+  console.log(result[0].body)
   return result;
 }
 
@@ -112,13 +109,16 @@ export async function readResources(
  */
 function parseResource(
   /** flat JSON refers to the flatten function from https://www.npmjs.com/package/flat */
-  flatJson: Record<string, string>,
+  json: any,
   language: string,
   isPrefixed: boolean,
   space: number | string,
   variableReferencePattern?: [string, string]
-  
 ): ast.Resource {
+
+  const flatJson = flatten(json) as Record<string, string>;
+  const isFlat = hasFlattenedKeys(json);
+
   return {
     type: "Resource",
     metadata: {
@@ -129,7 +129,7 @@ function parseResource(
       name: language,
     },
     body: Object.entries(flatJson).map(([id, value]) =>
-      parseMessage(id, value, isPrefixed, variableReferencePattern)
+      parseMessage(id, value, isPrefixed, isFlat, variableReferencePattern)
     ),
   };
 }
@@ -144,6 +144,7 @@ function parseMessage(
   id: string,
   value: string,
   isPrefixed: boolean,
+  isFlat: boolean,
   variableReferencePattern?: [string, string],
 ): ast.Message {
   const regex =
@@ -187,12 +188,10 @@ function parseMessage(
     });
   }
 
-  const splittedId = id.split(".");
-
   return {
     type: "Message",
     metadata: {
-      flatten: splittedId.length > (isPrefixed ? 2 : 1) ? true : false,
+      flatten: isFlat,
       isPrefixed: isPrefixed,
     },
     id: {
@@ -204,6 +203,15 @@ function parseMessage(
       elements: newElements as Array<ast.Text | ast.Placeholder>,
     },
   };
+}
+
+const hasFlattenedKeys = (json: any) => {
+  for (const key in json) {
+    if (key.slice(0,-1).includes(".")) {
+      return true;
+    }
+  }
+  return false;
 }
 
 const detectJsonSpacing = (jsonString: string) => {

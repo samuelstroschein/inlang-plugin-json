@@ -1,8 +1,17 @@
 {
-  "intro": "Folgende Befehle stehen zur Verfügung!",
-  "button": "Klicke hier um die Befehle zu sehen.",
-  "logout": {
-      "title": "Ausloggen"
-  }
+  "signUp.alreadyHaveAnAccount": "Ja tens un compte?",
+  "signUp.emailHint": "Correu electrònic",
+  "signUp.passwordHint": "Contrasenya",
+  "signUp.repeatPasswordHint": "Repeteix la contrasenya",
+  "signIn.loginTitle": "Inicia sessió a @:appName",
+  "signIn.loginButtonText": "Inicia sessió",
+  "signIn.buttonText": "Inicia sessió",
+  "signIn.forgotPassword": "Has oblidat la contrasenya?",
+  "signIn.emailHint": "Correu electrònic",
+  "signIn.passwordHint": "Contrasenya",
+  "signIn.dontHaveAnAccount": "No tens un compte?",
+  "signIn.repeatPasswordEmptyError": "La contrasenya repetida no pot ser buida",
+  "signIn.unmatchedPasswordError": "Les contrasenyes no concorden",
+  "workspace.create": "Crear un espai de treball",
+  "workspace.hint": "espai de treball"
 }
-  

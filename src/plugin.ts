@@ -123,13 +123,14 @@ function parseResource(
     type: "Resource",
     metadata: {
       space: space,
+      flatten: isFlat
     },
     languageTag: {  
       type: "LanguageTag",
       name: language,
     },
     body: Object.entries(flatJson).map(([id, value]) =>
-      parseMessage(id, value, isPrefixed, isFlat, variableReferencePattern)
+      parseMessage(id, value, isPrefixed, variableReferencePattern)
     ),
   };
 }
@@ -144,7 +145,6 @@ function parseMessage(
   id: string,
   value: string,
   isPrefixed: boolean,
-  isFlat: boolean,
   variableReferencePattern?: [string, string],
 ): ast.Message {
   const regex =
@@ -191,7 +191,6 @@ function parseMessage(
   return {
     type: "Message",
     metadata: {
-      flatten: isFlat,
       isPrefixed: isPrefixed,
     },
     id: {
@@ -314,10 +313,9 @@ function serializeResource(
   let obj = {};
   resource.body.forEach((message, i) => {
     const [key, value] = serializeMessage(message, variableReferencePattern);
-    obj = {...obj, ...{[key.slice(-1) === "." ? (key.slice(0,-1) + "FINAL_CHAR_DOT") : key]: message.metadata?.flatten ? value : unflatten(value)}}
+    obj = {...obj, ...{[key.slice(-1) === "." ? (key.slice(0,-1) + "FINAL_CHAR_DOT") : key]: value}}
   });
-  
-  
+  obj = resource.metadata?.flatten ? obj : unflatten(obj);
   // stringify the object with beautification.
   //const flatten = serialize?.flatten ? serialize?.flatten : false;
   //console.log(JSON.stringify(obj, null, space).replace(/FINAL_CHAR_DOT/gm, "."));

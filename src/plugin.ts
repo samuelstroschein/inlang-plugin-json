@@ -413,7 +413,7 @@ async function writeResources(
       await args.$fs.mkdir(resourcePath.replace("/*.json", ""));
     } else if (resourcePath.includes("/*.json")) {
       //deserialize the file names
-      const clonedResource = JSON.parse(JSON.stringify(resource.body));
+      const clonedResource = resource.body.length === 0 ? {} : JSON.parse(JSON.stringify(resource.body));
       //get prefixes
       const fileNames: Array<string> = [];
       clonedResource.map((message: ast.Message) => {

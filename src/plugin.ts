@@ -1,18 +1,9 @@
-import type {
-  InlangConfig
-} from "@inlang/core/config";
-import type {
-  InlangEnvironment
-} from "@inlang/core/environment";
+import type { InlangConfig } from "@inlang/core/config";
+import type { InlangEnvironment } from "@inlang/core/environment";
 import type * as ast from "@inlang/core/ast";
-import {
-  createPlugin
-} from "@inlang/core/plugin";
-import {
-  throwIfInvalidSettings,
-  type PluginSettings
-} from "./settings.js";
-import merge from "lodash.merge"
+import { createPlugin } from "@inlang/core/plugin";
+import { throwIfInvalidSettings, type PluginSettings } from "./settings.js";
+import merge from "lodash.merge";
 
 interface StringWithParents {
   value: string;
@@ -23,17 +14,14 @@ interface StringWithParents {
 
 type ExtendedMessagesType = {
   [key: string]: {
-    value: string,
-    parents: StringWithParents["parents"],
-    fileName: string | undefined,
-    keyName: string
-  }
+    value: string;
+    parents: StringWithParents["parents"];
+    fileName: string | undefined;
+    keyName: string;
+  };
 };
 
-export const plugin = createPlugin < PluginSettings > (({
-  settings,
-  env
-}) => ({
+export const plugin = createPlugin<PluginSettings>(({ settings, env }) => ({
   id: "samuelstroschein.inlangPluginJson",
   async config() {
     // will throw if the settings are invalid,
@@ -48,13 +36,13 @@ export const plugin = createPlugin < PluginSettings > (({
         readResources({
           ...args,
           $fs: env.$fs,
-          settings
+          settings,
         }),
       writeResources: async (args) =>
         writeResources({
           ...args,
           $fs: env.$fs,
-          settings
+          settings,
         }),
     };
   },
@@ -69,19 +57,28 @@ async function getLanguages(args: {
 }) {
   // replace the path
   const [pathBeforeLanguage, pathAfterLanguage] =
-  args.settings.pathPattern.split("{language}");
+    args.settings.pathPattern.split("{language}");
   const paths = await args.$fs.readdir(pathBeforeLanguage);
-  const languages: Array < string > = [];
+  const languages: Array<string> = [];
   for (const language of paths) {
     if (!language.includes(".")) {
       // this is a dir
-      for (const languagefile of await args.$fs.readdir(`${pathBeforeLanguage}${language}`)) {
+      for (const languagefile of await args.$fs.readdir(
+        `${pathBeforeLanguage}${language}`
+      )) {
         // this is the file, check if the language folder contains .json files
-        if (languagefile.endsWith(".json") && !args.settings.ignore?.some(s => s === language) && !languages.some((l) => l === language)) {
+        if (
+          languagefile.endsWith(".json") &&
+          !args.settings.ignore?.some((s) => s === language) &&
+          !languages.some((l) => l === language)
+        ) {
           languages.push(language);
         }
       }
-    } else if (language.endsWith(".json") && !args.settings.ignore?.some(s => s === language)) {
+    } else if (
+      language.endsWith(".json") &&
+      !args.settings.ignore?.some((s) => s === language)
+    ) {
       // this is the file, remove the .json extension to only get language name
       languages.push(language.replace(".json", ""));
     }
@@ -98,11 +95,11 @@ async function getLanguages(args: {
 export async function readResources(
   // merging the first argument from config (which contains all arguments)
   // with the custom settings argument
-  args: Parameters < InlangConfig["readResources"] > [0] & {
+  args: Parameters<InlangConfig["readResources"]>[0] & {
     $fs: InlangEnvironment["$fs"];
     settings: PluginSettings;
   }
-): ReturnType < InlangConfig["readResources"] > {
+): ReturnType<InlangConfig["readResources"]> {
   const result: ast.Resource[] = [];
   for (const language of args.config.languages) {
     const resourcePath = args.settings.pathPattern.replace(
@@ -112,17 +109,21 @@ export async function readResources(
     //try catch workaround because stats is not working
     try {
       // is file
-      const stringifiedFile = await args.$fs.readFile(resourcePath, {
-        encoding: "utf-8"
-      }) as string;
-      const space = detectJsonSpacing(await args.$fs.readFile(resourcePath, {
-        encoding: "utf-8"
-      }));
-      const extendedMessages = collectStringsWithParents(JSON.parse(stringifiedFile));
+      const stringifiedFile = (await args.$fs.readFile(resourcePath, {
+        encoding: "utf-8",
+      })) as string;
+      const space = detectJsonSpacing(
+        await args.$fs.readFile(resourcePath, {
+          encoding: "utf-8",
+        })
+      );
+      const extendedMessages = collectStringsWithParents(
+        JSON.parse(stringifiedFile)
+      );
 
       //make a object out of the extendedMessages Array
       let parsedMassagesForAst: ExtendedMessagesType = {};
-      extendedMessages.map(message => {
+      extendedMessages.map((message) => {
         parsedMassagesForAst = {
           ...parsedMassagesForAst,
           ...{
@@ -130,33 +131,48 @@ export async function readResources(
               value: message.value,
               parents: message.parents,
               fileName: undefined,
-              keyName: message.keyName
-            }
-          }
-        }
+              keyName: message.keyName,
+            },
+          },
+        };
       });
-      result.push(parseResource(parsedMassagesForAst, language, space, args.settings.variableReferencePattern));
+      result.push(
+        parseResource(
+          parsedMassagesForAst,
+          language,
+          space,
+          args.settings.variableReferencePattern
+        )
+      );
     } catch {
-
       // is directory
-      let obj: any = {}
+      let obj: any = {};
       const path = `${resourcePath.replace("/*.json", "")}`;
       const files = await args.$fs.readdir(path);
-      const space = detectJsonSpacing(await args.$fs.readFile(`${path}/${files[0]}`, {
-        encoding: "utf-8"
-      }));
+      const space = detectJsonSpacing(
+        await args.$fs.readFile(`${path}/${files[0]}`, {
+          encoding: "utf-8",
+        })
+      );
 
       //go through the files per language
       for (const languagefile of files) {
-        const stringifiedFile = await args.$fs.readFile(`${path}/${languagefile}`, {
-          encoding: "utf-8"
-        }) as string;
+        const stringifiedFile = (await args.$fs.readFile(
+          `${path}/${languagefile}`,
+          {
+            encoding: "utf-8",
+          }
+        )) as string;
         const fileName = languagefile.replace(".json", "");
-        const extendedMessages = collectStringsWithParents(JSON.parse(stringifiedFile), [], fileName);
+        const extendedMessages = collectStringsWithParents(
+          JSON.parse(stringifiedFile),
+          [],
+          fileName
+        );
 
         //make a object out of the extendedMessages Array
         let parsedMassagesForAst: ExtendedMessagesType = {};
-        extendedMessages.map(message => {
+        extendedMessages.map((message) => {
           parsedMassagesForAst = {
             ...parsedMassagesForAst,
             ...{
@@ -164,19 +180,26 @@ export async function readResources(
                 value: message.value,
                 parents: message.parents,
                 fileName,
-                keyName: message.keyName
-              }
-            }
-          }
+                keyName: message.keyName,
+              },
+            },
+          };
         });
 
         //merge the objects of every file
         obj = {
           ...obj,
-          ...parsedMassagesForAst
-        }
+          ...parsedMassagesForAst,
+        };
       }
-      result.push(parseResource(obj, language, space, args.settings.variableReferencePattern));
+      result.push(
+        parseResource(
+          obj,
+          language,
+          space,
+          args.settings.variableReferencePattern
+        )
+      );
     }
   }
   return result;
@@ -193,7 +216,7 @@ function parseResource(
   messages: ExtendedMessagesType,
   language: string,
   space: number | string,
-  variableReferencePattern ? : [string, string]
+  variableReferencePattern?: [string, string]
 ): ast.Resource {
   return {
     type: "Resource",
@@ -219,16 +242,16 @@ function parseResource(
 function parseMessage(
   id: string,
   extendedMessage: ExtendedMessagesType[string],
-  variableReferencePattern ? : [string, string],
+  variableReferencePattern?: [string, string]
 ): ast.Message {
   const regex =
     variableReferencePattern &&
-    (variableReferencePattern[1] ?
-      new RegExp(
-        `(\\${variableReferencePattern[0]}[^\\${variableReferencePattern[1]}]+\\${variableReferencePattern[1]})`,
-        "g"
-      ) :
-      new RegExp(`(${variableReferencePattern}\\w+)`, "g"));
+    (variableReferencePattern[1]
+      ? new RegExp(
+          `(\\${variableReferencePattern[0]}[^\\${variableReferencePattern[1]}]+\\${variableReferencePattern[1]})`,
+          "g"
+        )
+      : new RegExp(`(${variableReferencePattern}\\w+)`, "g"));
   const newElements = [];
   if (regex) {
     const splitArray = extendedMessage.value.split(regex);
@@ -238,12 +261,12 @@ function parseMessage(
           type: "Placeholder",
           body: {
             type: "VariableReference",
-            name: variableReferencePattern[1] ?
-              splitArray[i].slice(
-                variableReferencePattern[0].length,
-                variableReferencePattern[1].length * -1
-              ) :
-              splitArray[i].slice(variableReferencePattern[0].length),
+            name: variableReferencePattern[1]
+              ? splitArray[i].slice(
+                  variableReferencePattern[0].length,
+                  variableReferencePattern[1].length * -1
+                )
+              : splitArray[i].slice(variableReferencePattern[0].length),
           },
         });
       } else {
@@ -265,9 +288,15 @@ function parseMessage(
   return {
     type: "Message",
     metadata: {
-      ...(extendedMessage.fileName !== undefined && { fileName: extendedMessage.fileName }),
-      ...(extendedMessage.parents !== undefined && { parentKeys: extendedMessage.parents }),
-      ...(extendedMessage.keyName !== undefined && { keyName: extendedMessage.keyName })
+      ...(extendedMessage.fileName !== undefined && {
+        fileName: extendedMessage.fileName,
+      }),
+      ...(extendedMessage.parents !== undefined && {
+        parentKeys: extendedMessage.parents,
+      }),
+      ...(extendedMessage.keyName !== undefined && {
+        keyName: extendedMessage.keyName,
+      }),
     },
     id: {
       type: "Identifier",
@@ -275,77 +304,82 @@ function parseMessage(
     },
     pattern: {
       type: "Pattern",
-      elements: newElements as Array < ast.Text | ast.Placeholder > ,
+      elements: newElements as Array<ast.Text | ast.Placeholder>,
     },
   };
 }
 
-const collectStringsWithParents = (obj: any, parents: string[] | undefined = [], fileName ? : string) => {
+const collectStringsWithParents = (
+  obj: any,
+  parents: string[] | undefined = [],
+  fileName?: string
+) => {
   const results: StringWithParents[] = [];
 
-  if (typeof obj === 'string') {
+  if (typeof obj === "string") {
     results.push({
       value: obj,
       parents: parents.length > 1 ? parents.slice(0, -1) : undefined,
       id: fileName ? fileName + "." + parents.join(".") : parents.join("."),
-      keyName: parents[parents.length - 1]
+      keyName: parents[parents.length - 1],
     });
-  } else if (typeof obj === 'object' && obj !== null) {
+  } else if (typeof obj === "object" && obj !== null) {
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
         const currentParents = [...parents, key];
-        const childResults = collectStringsWithParents(obj[key], currentParents, fileName);
+        const childResults = collectStringsWithParents(
+          obj[key],
+          currentParents,
+          fileName
+        );
         results.push(...childResults);
       }
     }
   }
 
   return results;
-}
+};
 
 const detectJsonSpacing = (jsonString: string) => {
-  const patterns = [{
+  const patterns = [
+    {
       spacing: 1,
-      regex: /^{\n {1}[^ ]+.*$/m
+      regex: /^{\n {1}[^ ]+.*$/m,
     },
     {
       spacing: 2,
-      regex: /^{\n {2}[^ ]+.*$/m
+      regex: /^{\n {2}[^ ]+.*$/m,
     },
     {
       spacing: 3,
-      regex: /^{\n {3}[^ ]+.*$/m
+      regex: /^{\n {3}[^ ]+.*$/m,
     },
     {
       spacing: 4,
-      regex: /^{\n {4}[^ ]+.*$/m
+      regex: /^{\n {4}[^ ]+.*$/m,
     },
     {
       spacing: 6,
-      regex: /^{\n {6}[^ ]+.*$/m
+      regex: /^{\n {6}[^ ]+.*$/m,
     },
     {
       spacing: 8,
-      regex: /^{\n {8}[^ ]+.*$/m
+      regex: /^{\n {8}[^ ]+.*$/m,
     },
     {
-      spacing: '\t',
-      regex: /^{\n\t[^ ]+.*$/m
-    }
+      spacing: "\t",
+      regex: /^{\n\t[^ ]+.*$/m,
+    },
   ];
 
-  for (const {
-      spacing,
-      regex
-    } of patterns) {
+  for (const { spacing, regex } of patterns) {
     if (regex.test(jsonString)) {
       return spacing;
     }
   }
 
   return 2; // No matching spacing configuration found
-}
-
+};
 
 /**
  * Writing resources.
@@ -354,11 +388,11 @@ const detectJsonSpacing = (jsonString: string) => {
  * and EnvironmentFunctions.
  */
 async function writeResources(
-  args: Parameters < InlangConfig["writeResources"] > [0] & {
+  args: Parameters<InlangConfig["writeResources"]>[0] & {
     settings: PluginSettings;
     $fs: InlangEnvironment["$fs"];
   }
-): ReturnType < InlangConfig["writeResources"] > {
+): ReturnType<InlangConfig["writeResources"]> {
   for (const resource of args.resources) {
     const resourcePath = args.settings.pathPattern.replace(
       "{language}",
@@ -366,42 +400,55 @@ async function writeResources(
     );
 
     const space = resource.metadata?.space;
-    
-    if (resource.body.some(message => message.metadata?.fileName)) {
 
+    if (resource.body.some((message) => message.metadata?.fileName)) {
       //deserialize the file names
-      const clonedResource = structuredClone(resource.body)
+      const clonedResource = structuredClone(resource.body);
       //get prefixes
-      const fileNames: Array < string > = [];
-      clonedResource.map(message => {
-        if(message.metadata?.fileName && !fileNames.some(f => f === message.metadata?.fileName)) {
+      const fileNames: Array<string> = [];
+      clonedResource.map((message) => {
+        if (
+          message.metadata?.fileName &&
+          !fileNames.some((f) => f === message.metadata?.fileName)
+        ) {
           fileNames.push(message.metadata?.fileName);
         }
       });
 
       for (const fileName of fileNames) {
         const filteredMassages = clonedResource
-          .filter(message => message.id.name.startsWith(fileName))
-          .map(message => {
+          .filter((message) => message.id.name.startsWith(fileName))
+          .map((message) => {
             return {
               ...message,
               id: {
                 ...message.id,
-                name: message.id.name.replace(`${fileName}.`, "")
-              }
-            }
-          })
+                name: message.id.name.replace(`${fileName}.`, ""),
+              },
+            };
+          });
         const splitedResource: ast.Resource = {
           type: resource.type,
           languageTag: resource.languageTag,
-          body: filteredMassages
-        }
-        await args.$fs.writeFile(resourcePath.replace("*", fileName), serializeResource(splitedResource, space, args.settings.variableReferencePattern));
+          body: filteredMassages,
+        };
+        await args.$fs.writeFile(
+          resourcePath.replace("*", fileName),
+          serializeResource(
+            splitedResource,
+            space,
+            args.settings.variableReferencePattern
+          )
+        );
       }
     } else {
       await args.$fs.writeFile(
         resourcePath,
-        serializeResource(resource, space, args.settings.variableReferencePattern)
+        serializeResource(
+          resource,
+          space,
+          args.settings.variableReferencePattern
+        )
       );
     }
   }
@@ -420,12 +467,15 @@ async function writeResources(
 function serializeResource(
   resource: ast.Resource,
   space: number | string,
-  variableReferencePattern ? : [string, string]
+  variableReferencePattern?: [string, string]
 ): string {
   let obj = {};
-  resource.body.forEach(message => {
-    const returnedJsonMessage = serializeMessage(message, variableReferencePattern);
-    merge(obj,returnedJsonMessage);
+  resource.body.forEach((message) => {
+    const returnedJsonMessage = serializeMessage(
+      message,
+      variableReferencePattern
+    );
+    merge(obj, returnedJsonMessage);
   });
   return JSON.stringify(obj, null, space);
 }
@@ -438,37 +488,47 @@ function serializeResource(
  */
 const serializeMessage = (
   message: ast.Message,
-  variableReferencePattern ? : [string, string]
+  variableReferencePattern?: [string, string]
 ) => {
   const newStringArr = [];
   for (const element of message.pattern.elements) {
     if (element.type === "Text" || !variableReferencePattern) {
       newStringArr.push(element.value);
     } else if (element.type === "Placeholder") {
-      variableReferencePattern[1] ?
-        newStringArr.push(
-          `${variableReferencePattern[0]}${element.body.name}${variableReferencePattern[1]}`
-        ) :
-        newStringArr.push(
-          `${variableReferencePattern[0]}${element.body.name}`
-        );
+      variableReferencePattern[1]
+        ? newStringArr.push(
+            `${variableReferencePattern[0]}${element.body.name}${variableReferencePattern[1]}`
+          )
+        : newStringArr.push(
+            `${variableReferencePattern[0]}${element.body.name}`
+          );
     }
   }
   const newString: string = newStringArr.join("");
   const newObj: any = {};
-  addNestedKeys(newObj, message.metadata?.parentKeys, message.metadata?.keyName ,newString);
+  addNestedKeys(
+    newObj,
+    message.metadata?.parentKeys,
+    message.metadata?.keyName,
+    newString
+  );
   return newObj;
-}
+};
 
-const addNestedKeys = (obj: any, parentKeys: string[] | undefined, keyName: string, value: string) => {
-  if (!parentKeys || parentKeys.length === 0){
-    obj[keyName] = value
+const addNestedKeys = (
+  obj: any,
+  parentKeys: string[] | undefined,
+  keyName: string,
+  value: string
+) => {
+  if (!parentKeys || parentKeys.length === 0) {
+    obj[keyName] = value;
   } else if (parentKeys.length === 1) {
-    obj[parentKeys[0]] = {[keyName]: value};
+    obj[parentKeys[0]] = { [keyName]: value };
   } else {
     if (!obj[parentKeys[0]]) {
       obj[parentKeys[0]] = {};
     }
     addNestedKeys(obj[parentKeys[0]], parentKeys.slice(1), keyName, value);
   }
-}
+};

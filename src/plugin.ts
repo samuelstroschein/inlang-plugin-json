@@ -61,14 +61,12 @@ async function getLanguages(args: {
   const paths = await args.$fs.readdir(pathBeforeLanguage);
   const languages: Array<string> = [];
   for (const language of paths) {
-    //console.log(language)
     if (!language.includes(".")) {
       // this is a dir
       const languagefiles = await args.$fs.readdir(
         `${pathBeforeLanguage}${language}`
       );
       if(languagefiles.length === 0){
-        //console.log("add new language")
         languages.push(language);
       }else{
         for (const languagefile of languagefiles) {
@@ -109,7 +107,6 @@ export async function readResources(
 ): ReturnType<InlangConfig["readResources"]> {
   const result: ast.Resource[] = [];
   const languages = await getLanguages(args);
-  console.log("read: ", languages)
   for (const language of languages) {
     const resourcePath = args.settings.pathPattern.replace(
       "{language}",
@@ -121,7 +118,6 @@ export async function readResources(
       const stringifiedFile = (await args.$fs.readFile(resourcePath, {
         encoding: "utf-8",
       })) as string;
-      console.log(stringifiedFile)
       const space = detectJsonSpacing(
         await args.$fs.readFile(resourcePath, {
           encoding: "utf-8",
@@ -157,7 +153,6 @@ export async function readResources(
       // is directory
       let obj: any = {};
       const path = `${resourcePath.replace("/*.json", "")}`;
-      console.log("path: ", path)
       const files = await args.$fs.readdir(path);
         const space = files.length === 0 ? 2 : detectJsonSpacing(
           await args.$fs.readFile(`${path}/${files[0]}`, {
@@ -169,7 +164,6 @@ export async function readResources(
       if(files.length !== 0) {
         //go through the files per language
         for (const languagefile of files) {
-          console.log("readPerFile: ", languagefile, language)
           const stringifiedFile = (await args.$fs.readFile(
             `${path}/${languagefile}`,
             {
@@ -407,25 +401,22 @@ async function writeResources(
     $fs: InlangEnvironment["$fs"];
   }
 ): ReturnType<InlangConfig["writeResources"]> {
-  console.log("write: ", args.resources)
   for (const resource of args.resources) {
     const resourcePath = args.settings.pathPattern.replace(
       "{language}",
       resource.languageTag.name
     );
-    console.log("in this path: ", resourcePath)
     const space = resource.metadata?.space || 2;
 
     if(resource.body.length === 0){
       //make a dir if resource with no messages
-      console.log("add new dir")
       await args.$fs.mkdir(resourcePath.replace("/*.json", ""));
     } else if (resourcePath.includes("/*.json")) {
       //deserialize the file names
-      const clonedResource = structuredClone(resource.body);
+      const clonedResource = JSON.parse(JSON.stringify(resource.body));
       //get prefixes
       const fileNames: Array<string> = [];
-      clonedResource.map((message) => {
+      clonedResource.map((message: ast.Message) => {
         if (
           message.metadata?.fileName &&
           !fileNames.some((f) => f === message.metadata?.fileName)
@@ -435,8 +426,8 @@ async function writeResources(
       });
       for (const fileName of fileNames) {
         const filteredMassages = clonedResource
-          .filter((message) => message.id.name.startsWith(fileName))
-          .map((message) => {
+          .filter((message: ast.Message) => message.id.name.startsWith(fileName))
+          .map((message: ast.Message) => {
             return {
               ...message,
               id: {

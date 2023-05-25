@@ -66,9 +66,9 @@ async function getLanguages(args: {
       const languagefiles = await args.$fs.readdir(
         `${pathBeforeLanguage}${language}`
       );
-      if(languagefiles.length === 0){
+      if (languagefiles.length === 0) {
         languages.push(language);
-      }else{
+      } else {
         for (const languagefile of languagefiles) {
           // this is the file, check if the language folder contains .json files
           if (
@@ -154,14 +154,16 @@ export async function readResources(
       let obj: any = {};
       const path = `${resourcePath.replace("/*.json", "")}`;
       const files = await args.$fs.readdir(path);
-        const space = files.length === 0 ? 2 : detectJsonSpacing(
-          await args.$fs.readFile(`${path}/${files[0]}`, {
-            encoding: "utf-8",
-          })
-        );
-      
+      const space =
+        files.length === 0
+          ? 2
+          : detectJsonSpacing(
+              await args.$fs.readFile(`${path}/${files[0]}`, {
+                encoding: "utf-8",
+              })
+            );
 
-      if(files.length !== 0) {
+      if (files.length !== 0) {
         //go through the files per language
         for (const languagefile of files) {
           const stringifiedFile = (await args.$fs.readFile(
@@ -220,7 +222,6 @@ export async function readResources(
  *  parseResource({ "test": "Hello world" }, "en")
  */
 function parseResource(
-  /** flat JSON refers to the flatten function from https://www.npmjs.com/package/flat */
   messages: ExtendedMessagesType,
   language: string,
   space: number | string,
@@ -408,17 +409,27 @@ async function writeResources(
     );
     const space = resource.metadata?.space || 2;
 
-    if(resource.body.length === 0){
+    if (resource.body.length === 0) {
       //make a dir if resource with no messages
-      await args.$fs.mkdir(resourcePath.replace("/*.json", ""));
+      await args.$fs.mkdir(
+        resourcePath.replace(
+          resourcePath
+            .split(resource.languageTag.name.toString())[1]
+            .toString(),
+          ""
+        )
+      );
     } else if (resourcePath.includes("/*.json")) {
       //deserialize the file names
-      const clonedResource = resource.body.length === 0 ? {} : JSON.parse(JSON.stringify(resource.body));
+      const clonedResource =
+        resource.body.length === 0
+          ? {}
+          : JSON.parse(JSON.stringify(resource.body));
       //get prefixes
       const fileNames: Array<string> = [];
       clonedResource.map((message: ast.Message) => {
-        if(!message.metadata?.fileName){
-          fileNames.push(message.id.name.split(".")[0])
+        if (!message.metadata?.fileName) {
+          fileNames.push(message.id.name.split(".")[0]);
         } else if (
           message.metadata?.fileName &&
           !fileNames.some((f) => f === message.metadata?.fileName)
@@ -428,7 +439,9 @@ async function writeResources(
       });
       for (const fileName of fileNames) {
         const filteredMassages = clonedResource
-          .filter((message: ast.Message) => message.id.name.startsWith(fileName))
+          .filter((message: ast.Message) =>
+            message.id.name.startsWith(fileName)
+          )
           .map((message: ast.Message) => {
             return {
               ...message,
@@ -451,7 +464,7 @@ async function writeResources(
             args.settings.variableReferencePattern
           )
         );
-      } 
+      }
     } else {
       await args.$fs.writeFile(
         resourcePath,
@@ -517,19 +530,19 @@ const serializeMessage = (
   }
   const newString: string = newStringArr.join("");
   const newObj: any = {};
-  if(message.metadata?.keyName){
+  if (message.metadata?.keyName) {
     addNestedKeys(
       newObj,
       message.metadata?.parentKeys,
       message.metadata?.keyName,
       newString
     );
-  }else if(message.metadata?.fileName){
-    newObj[(message.id.name).split(".").slice(1).join(".")] = newString; 
-  }else{
+  } else if (message.metadata?.fileName) {
+    newObj[message.id.name.split(".").slice(1).join(".")] = newString;
+  } else {
     newObj[message.id.name] = newString;
   }
-  
+
   return newObj;
 };
 

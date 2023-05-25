@@ -27,7 +27,6 @@ test("inlang's config validation should pass", async () => {
 
   //custom test
   const resources = await config.readResources({ config });
-  console.log(resources)
   expect(JSON.stringify(resources) === JSON.stringify(referenceResources)).toBe(true);
 });
 

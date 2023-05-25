@@ -411,7 +411,7 @@ async function writeResources(
 
     if (resource.body.length === 0) {
       //make a dir if resource with no messages
-      if(resourcePath.includes("/*.json")){
+      if(resourcePath.split(resource.languageTag.name.toString())[1].includes("/")){
         await args.$fs.mkdir(
           resourcePath.replace(
             resourcePath
@@ -420,6 +420,12 @@ async function writeResources(
             ""
           )
         );
+        if(!resourcePath.includes("/*.json")){
+          await args.$fs.writeFile(
+            resourcePath,
+            JSON.stringify({}, null, space)
+          );
+        }
       } else {
         await args.$fs.writeFile(
           resourcePath,

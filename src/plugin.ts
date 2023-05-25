@@ -411,7 +411,7 @@ async function writeResources(
 
     if (resource.body.length === 0) {
       //make a dir if resource with no messages
-      if(resourcePath.split(resource.languageTag.name.toString())[1].includes("/")){
+      if(resourcePath.includes("/*.json")){
         await args.$fs.mkdir(
           resourcePath.replace(
             resourcePath
@@ -426,7 +426,6 @@ async function writeResources(
           JSON.stringify({}, null, space)
         );
       }
-      console.log(resourcePath)
     } else if (resourcePath.includes("/*.json")) {
       //deserialize the file names
       const clonedResource =
@@ -474,7 +473,6 @@ async function writeResources(
         );
       }
     } else {
-      console.log(resource)
       await args.$fs.writeFile(
         resourcePath,
         serializeResource(

@@ -417,7 +417,9 @@ async function writeResources(
       //get prefixes
       const fileNames: Array<string> = [];
       clonedResource.map((message: ast.Message) => {
-        if (
+        if(!message.metadata?.fileName){
+          fileNames.push(message.id.name.split(".")[0])
+        } else if (
           message.metadata?.fileName &&
           !fileNames.some((f) => f === message.metadata?.fileName)
         ) {

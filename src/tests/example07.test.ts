@@ -29,20 +29,22 @@ test("inlang's config validation should pass", async () => {
 
   //custom test
   const resources = await config.readResources({ config });
-  expect(JSON.stringify(resources) === JSON.stringify(referenceResources)).toBe(true);
+  expect(JSON.stringify(resources) === JSON.stringify(startResources)).toBe(true);
 
   //add langugae
-  await config.writeResources({ config, resources: referenceResourcesNew as ast.Resource[] });
-  const resourcesNew = await config.readResources({ config });
-  console.log(resourcesNew)
-  expect(JSON.stringify(resourcesNew) === JSON.stringify(referenceResourcesNewExpected)).toBe(true);
+  await config.writeResources({ config, resources: beforeAddingLanguage as ast.Resource[] });
+  const ressourcesWithAddedLanguage = await config.readResources({ config });
+  expect(JSON.stringify(ressourcesWithAddedLanguage) === JSON.stringify(afterAddingLanguage)).toBe(true);
+
+  //add message to new language
+  await config.writeResources({ config, resources: beforeAddingMessage as ast.Resource[] });
+  const ressourcesWithAddedMessage = await config.readResources({ config });
+  expect(JSON.stringify(ressourcesWithAddedMessage) === JSON.stringify(afterAddingMessage)).toBe(true);
 });
-
-
 
 // reference resources ----------------------------------------------
 
-const referenceResources = [
+const startResources = [
   {
     type: 'Resource',
     metadata: { space: 2 },
@@ -60,7 +62,7 @@ const referenceResources = [
   }
 ];
 
-const referenceResourcesNew = [
+const beforeAddingLanguage = [
   {
     type: 'Resource',
     metadata: { space: 2 },
@@ -82,7 +84,7 @@ const referenceResourcesNew = [
   }
 ];
 
-const referenceResourcesNewExpected = [
+const afterAddingLanguage = [
   {
     type: 'Resource',
     metadata: { space: 2 },
@@ -102,6 +104,69 @@ const referenceResourcesNewExpected = [
     metadata: { space: 2 },
     languageTag: { type: 'LanguageTag', name: 'de' },
     body: []
+  }
+];
+
+const beforeAddingMessage = [
+  {
+    type: 'Resource',
+    metadata: { space: 2 },
+    languageTag: { type: 'LanguageTag', name: 'en' },
+    body: [ 
+      {
+        type: 'Message',
+        metadata: { fileName: 'translation', keyName: 'message01' },
+        id: { type: 'Identifier', name: 'translation.message01' },
+        pattern: { 
+          type: 'Pattern', 
+          elements: [ { type: 'Text', value: 'first' } ] }
+      }
+    ]
+  },{
+    type: 'Resource',
+    metadata: { space: 2 },
+    languageTag: { type: 'LanguageTag', name: 'de' },
+    body: [
+      {
+        type: 'Message',
+        id: { type: 'Identifier', name: 'translation.message01' },
+        pattern: { 
+          type: 'Pattern', 
+          elements: [ { type: 'Text', value: 'erster' } ] }
+      }
+    ]
+  }
+];
+
+const afterAddingMessage = [
+  {
+    type: 'Resource',
+    metadata: { space: 2 },
+    languageTag: { type: 'LanguageTag', name: 'en' },
+    body: [ 
+      {
+        type: 'Message',
+        metadata: { fileName: 'translation', keyName: 'message01' },
+        id: { type: 'Identifier', name: 'translation.message01' },
+        pattern: { 
+          type: 'Pattern', 
+          elements: [ { type: 'Text', value: 'first' } ] }
+      }
+    ]
+  },{
+    type: 'Resource',
+    metadata: { space: 2 },
+    languageTag: { type: 'LanguageTag', name: 'de' },
+    body: [
+      {
+        type: 'Message',
+        metadata: { fileName: 'translation', keyName: 'message01' },
+        id: { type: 'Identifier', name: 'translation.message01' },
+        pattern: { 
+          type: 'Pattern', 
+          elements: [ { type: 'Text', value: 'erster' } ] }
+      }
+    ]
   }
 ];
 

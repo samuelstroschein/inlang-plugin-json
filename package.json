@@ -15,11 +15,13 @@
   },
   "dependencies": {
     "@inlang/core": "^0.8.2",
-    "flat": "^5.0.2"
+    "flat": "^5.0.2",
+    "lodash.merge": "^4.6.2"
   },
   "devDependencies": {
     "@size-limit/preset-app": "^8.2.4",
     "@types/flat": "^5.0.2",
+    "@types/lodash.merge": "^4.6.7",
     "concurrently": "^7.6.0",
     "esbuild": "^0.17.10",
     "memfs": "^3.4.12",

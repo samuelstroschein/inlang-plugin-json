@@ -8,9 +8,7 @@
       referenceLanguage: "en",
       plugins: [
         plugin({
-          pathPattern: "./example02/{language}/*.json",
-          variableReferencePattern: ["{{", "}}"],
-          ignore: [".eslintrc.json"]
+          pathPattern: "./example05/{language}/*.json"
         }),
       ],
     };

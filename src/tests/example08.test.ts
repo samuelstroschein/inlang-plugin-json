@@ -34,6 +34,7 @@ test("inlang's config validation should pass", async () => {
   //add langugae
   await config.writeResources({ config, resources: referenceResourcesNew as ast.Resource[] });
   const resourcesNew = await config.readResources({ config });
+  console.log(JSON.stringify(resourcesNew, null, 2));
   expect(JSON.stringify(resourcesNew) === JSON.stringify(referenceResourcesNewExpected)).toBe(true);
 });
 

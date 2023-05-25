@@ -35,6 +35,11 @@ test("inlang's config validation should pass", async () => {
   await config.writeResources({ config, resources: beforeAddingLanguage as ast.Resource[] });
   const ressourcesWithAddedLanguage = await config.readResources({ config });
   expect(JSON.stringify(ressourcesWithAddedLanguage) === JSON.stringify(afterAddingLanguage)).toBe(true);
+
+  //add message to new language
+  await config.writeResources({ config, resources: beforeAddingMessage as ast.Resource[] });
+  const ressourcesWithAddedMessage = await config.readResources({ config });
+  expect(JSON.stringify(ressourcesWithAddedMessage) === JSON.stringify(afterAddingMessage)).toBe(true);
 });
 
 
@@ -101,6 +106,69 @@ const afterAddingLanguage = [
     metadata: { space: 2 },
     languageTag: { type: 'LanguageTag', name: 'de' },
     body: []
+  }
+];
+
+const beforeAddingMessage = [
+  {
+    type: 'Resource',
+    metadata: { space: 2 },
+    languageTag: { type: 'LanguageTag', name: 'en' },
+    body: [ 
+      {
+        type: 'Message',
+        metadata: { keyName: 'message01' },
+        id: { type: 'Identifier', name: 'message01' },
+        pattern: { 
+          type: 'Pattern', 
+          elements: [ { type: 'Text', value: 'first' } ] }
+      }
+    ]
+  },{
+    type: 'Resource',
+    metadata: { space: 2 },
+    languageTag: { type: 'LanguageTag', name: 'de' },
+    body: [
+      {
+        type: 'Message',
+        id: { type: 'Identifier', name: 'message01' },
+        pattern: { 
+          type: 'Pattern', 
+          elements: [ { type: 'Text', value: 'erster' } ] }
+      }
+    ]
+  }
+];
+
+const afterAddingMessage = [
+  {
+    type: 'Resource',
+    metadata: { space: 2 },
+    languageTag: { type: 'LanguageTag', name: 'en' },
+    body: [ 
+      {
+        type: 'Message',
+        metadata: { keyName: 'message01' },
+        id: { type: 'Identifier', name: 'message01' },
+        pattern: { 
+          type: 'Pattern', 
+          elements: [ { type: 'Text', value: 'first' } ] }
+      }
+    ]
+  },{
+    type: 'Resource',
+    metadata: { space: 2 },
+    languageTag: { type: 'LanguageTag', name: 'de' },
+    body: [
+      {
+        type: 'Message',
+        metadata: { keyName: 'message01' },
+        id: { type: 'Identifier', name: 'message01' },
+        pattern: { 
+          type: 'Pattern', 
+          elements: [ { type: 'Text', value: 'erster' } ] }
+      }
+    ]
   }
 ];
 

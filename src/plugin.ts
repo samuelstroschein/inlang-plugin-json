@@ -411,14 +411,22 @@ async function writeResources(
 
     if (resource.body.length === 0) {
       //make a dir if resource with no messages
-      await args.$fs.mkdir(
-        resourcePath.replace(
-          resourcePath
-            .split(resource.languageTag.name.toString())[1]
-            .toString(),
-          ""
-        )
-      );
+      if(resourcePath.split(resource.languageTag.name.toString())[1].includes("/")){
+        await args.$fs.mkdir(
+          resourcePath.replace(
+            resourcePath
+              .split(resource.languageTag.name.toString())[1]
+              .toString(),
+            ""
+          )
+        );
+      } else {
+        await args.$fs.writeFile(
+          resourcePath,
+          JSON.stringify({}, null, space)
+        );
+      }
+      console.log(resourcePath)
     } else if (resourcePath.includes("/*.json")) {
       //deserialize the file names
       const clonedResource =
@@ -466,6 +474,7 @@ async function writeResources(
         );
       }
     } else {
+      console.log(resource)
       await args.$fs.writeFile(
         resourcePath,
         serializeResource(

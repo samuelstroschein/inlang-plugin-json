@@ -15,9 +15,9 @@ interface StringWithParents {
 type ExtendedMessagesType = {
   [key: string]: {
     value: string;
-    parents: StringWithParents["parents"];
-    fileName: string | undefined;
-    keyName: string;
+    parents?: StringWithParents["parents"];
+    fileName?: string;
+    keyName?: string;
   };
 };
 
@@ -61,18 +61,25 @@ async function getLanguages(args: {
   const paths = await args.$fs.readdir(pathBeforeLanguage);
   const languages: Array<string> = [];
   for (const language of paths) {
+    //console.log(language)
     if (!language.includes(".")) {
       // this is a dir
-      for (const languagefile of await args.$fs.readdir(
+      const languagefiles = await args.$fs.readdir(
         `${pathBeforeLanguage}${language}`
-      )) {
-        // this is the file, check if the language folder contains .json files
-        if (
-          languagefile.endsWith(".json") &&
-          !args.settings.ignore?.some((s) => s === language) &&
-          !languages.some((l) => l === language)
-        ) {
-          languages.push(language);
+      );
+      if(languagefiles.length === 0){
+        //console.log("add new language")
+        languages.push(language);
+      }else{
+        for (const languagefile of languagefiles) {
+          // this is the file, check if the language folder contains .json files
+          if (
+            languagefile.endsWith(".json") &&
+            !args.settings.ignore?.some((s) => s === language) &&
+            !languages.some((l) => l === language)
+          ) {
+            languages.push(language);
+          }
         }
       }
     } else if (
@@ -101,7 +108,9 @@ export async function readResources(
   }
 ): ReturnType<InlangConfig["readResources"]> {
   const result: ast.Resource[] = [];
-  for (const language of args.config.languages) {
+  const languages = await getLanguages(args);
+  console.log("read: ", languages)
+  for (const language of languages) {
     const resourcePath = args.settings.pathPattern.replace(
       "{language}",
       language
@@ -112,6 +121,7 @@ export async function readResources(
       const stringifiedFile = (await args.$fs.readFile(resourcePath, {
         encoding: "utf-8",
       })) as string;
+      console.log(stringifiedFile)
       const space = detectJsonSpacing(
         await args.$fs.readFile(resourcePath, {
           encoding: "utf-8",
@@ -130,7 +140,6 @@ export async function readResources(
             [message.id]: {
               value: message.value,
               parents: message.parents,
-              fileName: undefined,
               keyName: message.keyName,
             },
           },
@@ -148,49 +157,54 @@ export async function readResources(
       // is directory
       let obj: any = {};
       const path = `${resourcePath.replace("/*.json", "")}`;
+      console.log("path: ", path)
       const files = await args.$fs.readdir(path);
-      const space = detectJsonSpacing(
-        await args.$fs.readFile(`${path}/${files[0]}`, {
-          encoding: "utf-8",
-        })
-      );
-
-      //go through the files per language
-      for (const languagefile of files) {
-        const stringifiedFile = (await args.$fs.readFile(
-          `${path}/${languagefile}`,
-          {
+        const space = files.length === 0 ? 2 : detectJsonSpacing(
+          await args.$fs.readFile(`${path}/${files[0]}`, {
             encoding: "utf-8",
-          }
-        )) as string;
-        const fileName = languagefile.replace(".json", "");
-        const extendedMessages = collectStringsWithParents(
-          JSON.parse(stringifiedFile),
-          [],
-          fileName
+          })
         );
+      
 
-        //make a object out of the extendedMessages Array
-        let parsedMassagesForAst: ExtendedMessagesType = {};
-        extendedMessages.map((message) => {
-          parsedMassagesForAst = {
-            ...parsedMassagesForAst,
-            ...{
-              [message.id]: {
-                value: message.value,
-                parents: message.parents,
-                fileName,
-                keyName: message.keyName,
+      if(files.length !== 0) {
+        //go through the files per language
+        for (const languagefile of files) {
+          console.log("readPerFile: ", languagefile, language)
+          const stringifiedFile = (await args.$fs.readFile(
+            `${path}/${languagefile}`,
+            {
+              encoding: "utf-8",
+            }
+          )) as string;
+          const fileName = languagefile.replace(".json", "");
+          const extendedMessages = collectStringsWithParents(
+            JSON.parse(stringifiedFile),
+            [],
+            fileName
+          );
+
+          //make a object out of the extendedMessages Array
+          let parsedMassagesForAst: ExtendedMessagesType = {};
+          extendedMessages.map((message) => {
+            parsedMassagesForAst = {
+              ...parsedMassagesForAst,
+              ...{
+                [message.id]: {
+                  value: message.value,
+                  parents: message.parents,
+                  fileName,
+                  keyName: message.keyName,
+                },
               },
-            },
-          };
-        });
+            };
+          });
 
-        //merge the objects of every file
-        obj = {
-          ...obj,
-          ...parsedMassagesForAst,
-        };
+          //merge the objects of every file
+          obj = {
+            ...obj,
+            ...parsedMassagesForAst,
+          };
+        }
       }
       result.push(
         parseResource(
@@ -393,15 +407,20 @@ async function writeResources(
     $fs: InlangEnvironment["$fs"];
   }
 ): ReturnType<InlangConfig["writeResources"]> {
+  console.log("write: ", args.resources)
   for (const resource of args.resources) {
     const resourcePath = args.settings.pathPattern.replace(
       "{language}",
       resource.languageTag.name
     );
+    console.log("in this path: ", resourcePath)
+    const space = resource.metadata?.space || 2;
 
-    const space = resource.metadata?.space;
-
-    if (resource.body.some((message) => message.metadata?.fileName)) {
+    if(resource.body.length === 0){
+      //make a dir if resource with no messages
+      console.log("add new dir")
+      await args.$fs.mkdir(resourcePath.replace("/*.json", ""));
+    } else if (resourcePath.includes("/*.json")) {
       //deserialize the file names
       const clonedResource = structuredClone(resource.body);
       //get prefixes
@@ -414,7 +433,6 @@ async function writeResources(
           fileNames.push(message.metadata?.fileName);
         }
       });
-
       for (const fileName of fileNames) {
         const filteredMassages = clonedResource
           .filter((message) => message.id.name.startsWith(fileName))
@@ -440,7 +458,7 @@ async function writeResources(
             args.settings.variableReferencePattern
           )
         );
-      }
+      } 
     } else {
       await args.$fs.writeFile(
         resourcePath,
@@ -506,12 +524,19 @@ const serializeMessage = (
   }
   const newString: string = newStringArr.join("");
   const newObj: any = {};
-  addNestedKeys(
-    newObj,
-    message.metadata?.parentKeys,
-    message.metadata?.keyName,
-    newString
-  );
+  if(message.metadata?.keyName){
+    addNestedKeys(
+      newObj,
+      message.metadata?.parentKeys,
+      message.metadata?.keyName,
+      newString
+    );
+  }else if(message.metadata?.fileName){
+    newObj[(message.id.name).split(".").slice(1).join(".")] = newString; 
+  }else{
+    newObj[message.id.name] = newString;
+  }
+  
   return newObj;
 };
 

@@ -1,3 +1,10 @@
+# ----- DEPRECATED -----
+
+Use https://github.com/inlang/inlang/tree/main/source-code/plugins/json instead.
+
+---
+
+
 # inlang-plugin-json
 
 This plugin reads and writes resources that are stored as JSON. The following features are supported:
